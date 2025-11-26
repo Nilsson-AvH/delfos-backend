@@ -1,0 +1,28 @@
+{
+  "name": "delfos-backend",
+  "version": "1.0.0",
+  "description": "API Rest para Delfos Ltda",
+  "keywords": [
+    "api",
+    "node",
+    "express",
+    "bcrypt",
+    "mongoose",
+    "jwt"
+  ],
+  "homepage": "https://github.com/Nilsson-AvH/delfos-backend#readme",
+  "bugs": {
+    "url": "https://github.com/Nilsson-AvH/delfos-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nilsson-AvH/delfos-backend.git"
+  },
+  "license": "ISC",
+  "author": "Nilson Lopez Rivillas <nlr519.com@gmail.com>",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

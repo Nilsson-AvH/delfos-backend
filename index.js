@@ -1,1 +1,1 @@
-console.log(`Project Delfos`)
+console.log(`Project Delfos`);
