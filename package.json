@@ -20,10 +20,14 @@
   },
   "license": "ISC",
   "author": "Nilson Lopez Rivillas <nlr519.com@gmail.com>",
+  "contributors": [
+    "Heiber Diaz <heiberdiazp@gmail.com>",
+    "Juan Carlos Jimenez Gutierrez <janfojes@gmail.com>"
+  ],
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch index.js"
+    "dev": "node --watch ./src/index.js"
   },
   "dependencies": {
     "express": "^5.1.0"
