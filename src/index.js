@@ -1,6 +1,10 @@
 const express = require("express");         // Import the express module
+const dbConnection = require(`./config/mongo.config.js`);
+
 const app = express();                      // Create an instance of express 
 const PORT = 3000;
+
+dbConnection();
 
 app.get(`/health`, (req, res) => {
     // res.send("<h1>Server Health is running</h1>")
