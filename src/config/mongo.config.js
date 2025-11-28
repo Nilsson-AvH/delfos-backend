@@ -1,5 +1,6 @@
 // Mongoose ODM, ORM
-const mongoose = require(`mongoose`);
+// const mongoose = require(`mongoose`); esto es commonJS
+import mongoose from "mongoose";
 
 const MONGODB_URI = `mongodb://localhost:27017/db-delfos`;
 const dbConnection = async () => {
@@ -13,4 +14,5 @@ const dbConnection = async () => {
     }    
 }
 
-module.exports = dbConnection;
+// module.exports = dbConnection; esto es commonJS
+export default dbConnection;

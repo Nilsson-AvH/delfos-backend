@@ -1,4 +1,5 @@
-const express = require("express");
+// const express = require("express"); from CommonJS
+import express from "express";
 const router = express.Router();
 
 // Definicion de las rutas
@@ -23,4 +24,5 @@ router.get("/", (req, res) => {
     ]);
 });
 
-module.exports = router;
+// module.exports = router; from CommonJS
+export default router;
