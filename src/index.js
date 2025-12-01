@@ -12,12 +12,14 @@ dbConnection();
 app.get(`/health`, (req, res) => {
     // res.send("<h1>Server Health is running</h1>")
     res.json([
-        {message: "Server Health is running"},
-        {message: "This server is Juana La Monda"},
-        {message: "This is the best server in the world"}]);
+        { message: "Server Health is running" },
+        { message: "This server is Juana La Monda" },
+        { message: "This is the best server in the world" }]);
 });
 
 //Middlewares express
+app.use(express.json()); //Middleware para parsear el body de la peticion JSON (Ejemplo matrix trinity helicopter)
+
 app.use(`/api/v1/users`, usersRoute);
 app.use(`/api/v1/employees`, employeesRoute);
 
