@@ -3,20 +3,31 @@
 import { registerUser } from "../services/user.service.js";
 
 const createUser = async (req, res) => {
-    const data = req.body; // Obteniendo los datos del body postman
+    // se controla la exepcion que ocurre en el paso dos
+    try {
+        // Paso uno: Obteniendo los datos del body postman
+        const data = req.body;
 
-    // Lo muestra en la consola
-    console.log(data);
+        // Lo muestra en la consola
+        console.log(data);
 
-    // Registrar los datos en la base de datos usando el userModel
-    const dataRegistered = await registerUser(data);
+        // Paso dos: Registrar los datos en la base de datos usando el userModel
+        const dataRegistered = await registerUser(data);
 
 
-    // Responde con un JSON al cliente
-    res.json({
-        msg: `Create users`,
-        dataRegistered  //ECMAScript 2015 (ES6) Shorthand property (data: data)
-    });
+        // Paso tres: Responde con un JSON al cliente
+        res.json({
+            msg: `Create users`,
+            dataRegistered  //ECMAScript 2015 (ES6) Shorthand property (data: data)
+        });
+
+    } catch (error) {
+        // Paso cuatro: Responde con un JSON al cliente con la exepcion
+        console.error(error);
+        res.json({
+            msg: `Error al crear el usuario`
+        });
+    }
 };
 
 // Exportar el controlador
