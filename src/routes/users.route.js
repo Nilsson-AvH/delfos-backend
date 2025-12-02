@@ -1,6 +1,6 @@
 // const express = require("express"); from CommonJS
 import express from "express";
-import userModel from "../models/user.model.js";
+import { createUser } from "../controllers/user.controller.js";
 const router = express.Router();
 
 // Definicion de las rutas
@@ -9,21 +9,7 @@ router.get(`/`, (req, res) => {
     res.json({ msg: `Get all users` });
 });
 
-router.post(`/`, async (req, res) => {
-    const data = req.body; // Obteniendo los datos del body postman
-
-    // Lo muestra en la consola
-    console.log(data);
-
-    // Registrar los datos en la base de datos usando el userModel
-    const dataRegistered = await userModel.create(data);
-
-    // Responde con un JSON al cliente
-    res.json({
-        msg: `Create users`,
-        dataRegistered  //ECMAScript 2015 (ES6) Shorthand property (data: data)
-    });
-})
+router.post(`/`, createUser)
 
 // router.put(`/`, (req, res) => {
 //     res.json({ msg: `Update users actualiza todos los usuarios` });
