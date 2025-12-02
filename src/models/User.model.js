@@ -58,7 +58,10 @@ const userSchema = new Schema({
     //     // Modificaciones
     //     trim: true
     // }
-}, {});
+}, {
+    versionKey: false, // Deshabilitar la versionKey (no se muestra) "__v": 0
+    timestamps: true // Agregar timestamps (createdAt y updatedAt)
+});
 
 // Crear el modelo Use Bado en el esquema userSchema
 const userModel = model(
