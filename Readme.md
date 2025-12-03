@@ -9,7 +9,7 @@ Delfos es un proyecto de backend que se encarga de gestionar los empleados de la
 - [X] Obtener Listado de usuarios
 - [ ] Obtener Listado de un usuario por id.
 - [ ] Actualizacion de usuarios por id.
-- [ ] Eliminacion de usuarios por id. 
+- [X] Eliminacion de usuarios por id. 
 
 ## Tecnologias
 

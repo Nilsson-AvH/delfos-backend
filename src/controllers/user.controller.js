@@ -1,7 +1,7 @@
 // Controlador de usuarios, se debe encargar de recibir las peticiones y enviar las respuestas
 
 import userModel from "../models/user.model.js";
-import { dbRegisterUser, dbGetAllUsers, dbGetUserById } from "../services/user.service.js";
+import { dbRegisterUser, dbGetAllUsers, dbGetUserById, dbDeleteUserById } from "../services/user.service.js";
 
 const createUser = async (req, res) => {
     // se controla la exepcion que ocurre en el paso dos
@@ -59,11 +59,33 @@ const getUserById = async (req, res) => {
             msg: `Id no encontrado.`
         });
     }
+};
+
+const deleteUserById = async (req, res) => {
+
+    try {
+        const idUser = req.params.idUser;
+
+        const userDeleted = await dbDeleteUserById(idUser);
+
+        res.json({
+            userDeleted
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.json({
+            msg: `Error: al eliminar el usuario por id.`
+        });
+    }
+
+
 }
 
 // Exportar el controlador
 export {
     createUser,
     getAllUsers,
-    getUserById
+    getUserById,
+    deleteUserById
 }
