@@ -2,10 +2,15 @@
 
 import userModel from "../models/user.model.js";
 
-const registerUser = async (newUser) => {
+const dbRegisterUser = async (newUser) => {
     return await userModel.create(newUser);
+};
+
+const dbGetAllUsers = async () => {
+    return await userModel.find();
 }
 
 export {
-    registerUser
+    dbRegisterUser,
+    dbGetAllUsers
 }
