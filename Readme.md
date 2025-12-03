@@ -6,7 +6,7 @@ Delfos es un proyecto de backend que se encarga de gestionar los empleados de la
 **Entidad: User**
 - [X] Registro de usuarios
 - [X] Login de usuarios
-- [ ] Obtener Listado de usuarios
+- [X] Obtener Listado de usuarios
 - [ ] Obtener Listado de un usuario por id.
 - [ ] Actualizacion de usuarios por id.
 - [ ] Eliminacion de usuarios por id. 

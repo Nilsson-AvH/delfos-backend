@@ -1,14 +1,16 @@
 // const express = require("express"); from CommonJS
 import express from "express";
-import { createUser, getAllUsers } from "../controllers/user.controller.js";
+import { createUser, getAllUsers, getUserById } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
-// Definicion de las rutas
+// Definicion de las rutas (EndPoints)
 
 router.post(`/`, createUser)
 
 router.get(`/`, getAllUsers)
+
+router.get(`/:idUser`, getUserById) // Parametro de ruta: Crear un parametro de ruta que funje como variable para obtener un usuario por id
 
 // router.put(`/`, (req, res) => {
 //     res.json({ msg: `Update users actualizatodos los usuarios` });
