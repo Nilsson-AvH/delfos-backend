@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose"; // Desestructuracion de Schema de mongoose
 
-// Definicion del esquema
+// Paso 1: Definicion del esquema o estrucutura de la coleccion que se llamara userSchema
 const userSchema = new Schema({
     name: {
         // Validaciones
@@ -63,7 +63,7 @@ const userSchema = new Schema({
     timestamps: true // Agregar timestamps (createdAt y updatedAt)
 });
 
-// Crear el modelo Use Bado en el esquema userSchema
+// Paso 2: Crear el modelo userModel basado en el esquema userSchema
 const userModel = model(
     // Nombre de la coleccion en singular "users"
     "users",
@@ -71,5 +71,5 @@ const userModel = model(
     userSchema
 );
 
-// Exportar el modelo userModel
+// Paso 3: Exportar el modelo userModel para ser utilizado en otros archivos
 export default userModel;

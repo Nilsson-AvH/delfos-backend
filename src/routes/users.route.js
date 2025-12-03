@@ -20,14 +20,5 @@ router.patch(`/:idUser`, updateUserById)
 //     res.json({ msg: `Update users actualizatodos los usuarios` });
 // })
 
-// router.patch(`/`, (req, res) => {
-//     res.json({ msg: `Patch user, actualiza parcialmente un usuario` });
-// })
-
-// router.delete(`/`, (req, res) => {
-//     res.json({ msg: `Delete users` });
-// })
-
-// Exportando el router usando CommonJS
-// module.exports = router; from CommonJS
+// Exportando el router al archivo index.js,      usando CommonJS module.exports = router; from CommonJS
 export default router;

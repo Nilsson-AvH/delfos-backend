@@ -1,7 +1,7 @@
 // Controlador de usuarios, se debe encargar de recibir las peticiones y enviar las respuestas
 
 import userModel from "../models/user.model.js";
-import { dbRegisterUser, dbGetAllUsers, dbGetUserById, dbDeleteUserById } from "../services/user.service.js";
+import { dbRegisterUser, dbGetAllUsers, dbGetUserById, dbDeleteUserById, dbUpdateUserById } from "../services/user.service.js";
 
 const createUser = async (req, res) => {
     // se controla la exepcion que ocurre en el paso dos
@@ -88,22 +88,7 @@ const updateUserById = async (req, res) => {
         const inputData = req.body;
         const idUser = req.params.idUser;
 
-        const userUpdated = await userModel.findByIdAndUpdate(
-            // ID
-            idUser,
-            // Datos a actualizar
-            inputData,
-            // Opciones Configuraciones
-            { new: true }
-        );
-        // const userUpdated = await userModel.findOneAndUpdate(
-        //     // Objeto de consulta ID
-        //     { _id: idUser },
-        //     // Datos a actualizar
-        //     inputData,
-        //     // Opciones Configuraciones
-        //     {new: true}
-        // );
+        const userUpdated = await dbUpdateUserById(idUser, inputData);
 
         res.json({
             userUpdated
@@ -118,7 +103,7 @@ const updateUserById = async (req, res) => {
 
 }
 
-// Exportar el controlador
+// Exportar el controller al archivo user.route.js
 export {
     createUser,
     getAllUsers,
