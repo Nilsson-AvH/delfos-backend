@@ -80,6 +80,42 @@ const deleteUserById = async (req, res) => {
     }
 
 
+};
+
+const updateUserById = async (req, res) => {
+
+    try {
+        const inputData = req.body;
+        const idUser = req.params.idUser;
+
+        const userUpdated = await userModel.findByIdAndUpdate(
+            // ID
+            idUser,
+            // Datos a actualizar
+            inputData,
+            // Opciones Configuraciones
+            { new: true }
+        );
+        // const userUpdated = await userModel.findOneAndUpdate(
+        //     // Objeto de consulta ID
+        //     { _id: idUser },
+        //     // Datos a actualizar
+        //     inputData,
+        //     // Opciones Configuraciones
+        //     {new: true}
+        // );
+
+        res.json({
+            userUpdated
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.json({
+            msg: `Error: al actualizar el usuario por id.`
+        });
+    }
+
 }
 
 // Exportar el controlador
@@ -87,5 +123,6 @@ export {
     createUser,
     getAllUsers,
     getUserById,
-    deleteUserById
+    deleteUserById,
+    updateUserById
 }
