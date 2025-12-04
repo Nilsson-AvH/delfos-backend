@@ -1,75 +1,81 @@
-import { Schema, model } from "mongoose"; // Desestructuracion de Schema de mongoose
+import mongoose from 'mongoose';
+import { UserInformationSchema } from './UserInformation.model.js';
+const Schema = mongoose.Schema;
 
-// Paso 1: Definicion del esquema o estrucutura de la coleccion que se llamara userSchema
-const userSchema = new Schema({
-    name: {
-        // Validaciones
+// Define el esquema base para User
+const UserSchema = new Schema({
+    // Propiedades de identificación y personales
+    cc: { // Cédula de ciudadanía
         type: String,
         required: true,
-        // Modificaciones
+        unique: true, // Asegura que la CC sea única
         trim: true
-        // lowercase: true
+    },
+    firstName: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    middleName: {
+        type: String,
+        required: false, // Opcional
+        trim: true
+    },
+    lastName: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    secondLastName: {
+        type: String,
+        required: false, // Opcional
+        trim: true
+    },
+
+    // Propiedades de autenticación y sistema
+    email: {
+        type: String,
+        required: true,
+        unique: true, // Asegura que el correo sea único
+        lowercase: true,
+        trim: true,
+        match: [/.+@.+\..+/, "Por favor, ingrese un correo válido"] // Validación de formato básico
+    },
+    password: { // Contraseña
+        type: String,
+        required: true,
+        // **Recomendación:** Implementar hashing (e.g., bcrypt) antes de guardar
+        // Puedes usar un pre-save hook en Mongoose para esto.
     },
     username: {
-        // Validaciones
         type: String,
         required: true,
-        // Modificaciones
-        trim: true,
-        // lowercase: true,
-        unique: true
-    },
-    email: {
-        // Validaciones
-        type: String,
-        required: true,
-        // Modificaciones
-        trim: true,
-        lowercase: true,
-        unique: true
-    },
-    password: {
-        // Validaciones
-        type: String,
-        required: true,
-        // Modificaciones
-        trim: true,
-        minlength: 8,       //Minimo 8 caracteres
-        maxlength: 12      //Maximo 12 caracteres
-        // TODO: Aprender Expresiones Regulares
+        unique: true, // Asegura que el nombre de usuario sea único
+        trim: true
     },
     role: {
-        // Validaciones
-        type: String,       //Tipo de dato
-        required: true,     //Validacion obligatoria
-        // Modificaciones
-        trim: true,         //Elimina los espacios en blanco
-        lowercase: true,    //Convierte todo a minusculas
-        default: "registered",    //Valor por defecto
-        enum: ["administrator", "editor", "contributor", "viewer", "registered"]     //Enum (solo puede ser user o admin)
+        type: String,
+        required: true,
+        enum: ['admin', 'user', 'guest', 'manager'], // Define roles válidos
+        default: 'user'
     },
-    isActive: {
-        type: Boolean,
-        default: true
+    status: { // Estado
+        type: String,
+        required: true,
+        enum: ['active', 'inactive', 'suspended'], // Define estados válidos
+        default: 'active'
     }
-    // code: {
-    //     // Validaciones
-    //     type: String,       // Codigo de verificacion cadena aleatoria
-    //     // Modificaciones
-    //     trim: true
-    // }
 }, {
-    versionKey: false, // Deshabilitar la versionKey (no se muestra) "__v": 0
-    timestamps: true // Agregar timestamps (createdAt y updatedAt)
+    timestamps: true, // Agrega createdAt y updatedAt automáticamente
+    discriminatorKey: 'userType' // Clave usada para diferenciar los discriminadores
 });
 
-// Paso 2: Crear el modelo userModel basado en el esquema userSchema
-const userModel = model(
-    // Nombre de la coleccion en singular "users"
-    "users",
-    // Esquema asociado al modelo
-    userSchema
-);
+// Crea el modelo base
+const userModel = mongoose.model('User', UserSchema);
 
-// Paso 3: Exportar el modelo userModel para ser utilizado en otros archivos
-export default userModel;
+const userInformationModel = userModel.discriminator( 'UserInformation', UserInformationSchema );
+
+export {
+    userModel,
+    userInformationModel
+};

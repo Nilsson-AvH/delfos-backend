@@ -1,9 +1,13 @@
 // Servicio de usuarios, se debe encargar de la comunicacion directa con la base de datos
 
-import userModel from "../models/user.model.js";
+import { userInformationModel, userModel } from "../models/User.model.js";
 
 const dbRegisterUser = async (newUser) => {
     return await userModel.create(newUser);
+};
+
+const dbRegisterUserInfo = async (newUser) => {
+    return await userInformationModel.create(newUser);
 };
 
 const dbGetAllUsers = async () => {
@@ -33,5 +37,6 @@ export {
     dbGetAllUsers,
     dbGetUserById,
     dbDeleteUserById,
-    dbUpdateUserById
+    dbUpdateUserById,
+    dbRegisterUserInfo
 }
