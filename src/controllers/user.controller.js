@@ -7,18 +7,18 @@ const createUser = async (req, res) => {
     // se controla la exepcion que ocurre en el paso dos
     try {
         // Paso uno: Obteniendo los datos del body postman
-        const data = req.body;
+        const inputData = req.body;
 
         // Lo muestra en la consola
-        console.log(data);
+        // console.log(inputData);
 
         // Paso dos: Registrar los datos en la base de datos usando el userModel
-        const dataRegistered = await dbRegisterUser(data);
+        const dataRegistered = await dbRegisterUser(inputData);
 
 
         // Paso tres: Responde con un JSON al cliente
         res.json({
-            msg: `Create users`,
+            // msg: `Create users`,
             dataRegistered  //ECMAScript 2015 (ES6) Shorthand property (data: data)
         });
 
@@ -34,7 +34,9 @@ const createUser = async (req, res) => {
 const getAllUsers = async (req, res) => {
     try {
         const users = await dbGetAllUsers();
-        res.json({ msg: `Get all users`, users });
+        res.json({
+            users
+        });
     } catch (error) {
         console.error(error);
         res.json({
@@ -48,10 +50,10 @@ const getUserById = async (req, res) => {
     try {
         const idUser = req.params.idUser;
 
-        const user = await dbGetUserById(idUser);
+        const userFound = await dbGetUserById(idUser);
 
         res.json({
-            user
+            userFound
         });
     } catch (error) {
         console.error(error);
