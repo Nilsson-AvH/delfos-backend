@@ -1,65 +1,71 @@
-import mongoose from 'mongoose';
+const DocumentSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'El documento debe estar asociado a un usuario.'],
+        index: true
+    },
 
-const Schema = mongoose.Schema;
+    documentType: {
+        type: String,
+        enum: [
+            'Contrato', // <- El tipo que activa la referencia
+            'Curso',
+            'Certificacion',
+            'Memorando',
+            'Cedula',
+            'LibretaMilitar',
+            'LicenciaConduccion',
+            'OtroPersonal'
+        ],
+        required: [true, 'El tipo de documento es obligatorio.'],
+        trim: true
+    },
 
-const DocumentsSchema = new Schema({
-    contract: [
-        {
-            fecha_inicio: Date,
-            fecha_final: Date,
-            salario: Number,
-            patch: String,
-            tipo_contrato: { type: String, enum: ['Prestacion de servicios', 'Laboral', 'Termino Fijo', 'Estudiante', 'Pasante', 'Obra Labor'], default: 'Termino Fijo' },
-            periodo: { type: String, enum: ['3 meses', '6 meses', '9 meses', '12 meses'], default: '12 meses' },
-            estado: { type: String, enum: ['Activo', 'Prueba', 'Inactivo'], default: 'Activo' },
-            required: false,
-        }
-    ],
+    title: {
+        type: String,
+        required: [true, 'El título o descripción del documento es obligatorio.'],
+        trim: true,
+        maxlength: 250
+    },
 
-    securityCourse: [
-        {
-            fecha_inicio: Date,
-            fecha_final: Date,
-            ECSP: String,
-            patch: String,
-            tipo_curso: { type: String, enum: ['Induccion', 'Reentrenamiento'], default: 'Induccion' },
-            estado: { type: String, enum: ['Vigente', 'No Vigente'], default: 'No Vigente' },
-            required: false,
-        }
-    ],
-    nuip: {
-        patch: String,
-        required: true,
+    fileUrl: { // La URL al PDF/archivo final del contrato (si existe)
+        type: String,
+        required: false // Puede ser opcional si el contrato es primero data editable.
     },
-    photo: [
-        {
-            fecha: Date,
-            patch: String,
-            required: true,
-        }
-    ],
-    signature: {
-        patch: String,
-        required: false,
+
+    // ==========================================================
+    // CAMPO CLAVE PARA LA ASOCIACIÓN
+    // ==========================================================
+    contractDetails: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Contract', // ¡Referencia al nuevo modelo Contract!
+        required: false // Solo es obligatorio si documentType es 'Contrato'
     },
-    cv: {
-        patch: String,
-        required: false,
+
+    issueDate: {
+        type: Date,
+        required: false
     },
-    passport: {
-        patch: String,
-        required: false,
+    expiryDate: {
+        type: Date,
+        required: false
     },
-    bank: [
-        {
-            fecha: Date,
-            banco: String,
-            numero_cuenta: String,
-            tipo_cuenta: String,
-            patch: String,
-            required: false,
-        }
-    ],
+
+}, {
+    timestamps: true
 });
 
-export default DocumentsSchema;
+// AÑADIR VALIDACIÓN (Middleware de Mongoose)
+// Opcional pero recomendado: Asegurar que si es un 'Contrato', la referencia exista.
+DocumentSchema.pre('save', function (next) {
+    if (this.documentType === 'Contrato' && !this.contractDetails) {
+        // Si es un Contrato, contractDetails DEBE estar asociado.
+        // Esto se gestiona en la lógica de tu servicio al crear ambos documentos.
+        // next(new Error('Los documentos de tipo Contrato deben tener detalles contractuales asociados.'));
+    }
+    next();
+});
+
+const Document = mongoose.model('Document', DocumentSchema);
+// module.exports = Document; // (Si lo exportas en un archivo separado)
