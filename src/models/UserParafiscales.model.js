@@ -5,11 +5,17 @@ const Schema = mongoose.Schema;
 
 // Define el esquema discriminador para UserInformation
 // Este extiende al esquema User y añade las nuevas propiedades
-const UserInformationSchema = new Schema({
+const UserParafiscalesSchema = new Schema({
     // Propiedades específicas de seguridad social / Información laboral
     arl: {
         type: String,
         required: true,
+        trim: true
+    },
+    arldate: {
+        type: Date,
+        required: false,
+        default: new Date(0),
         trim: true
     },
     eps: {
@@ -17,16 +23,45 @@ const UserInformationSchema = new Schema({
         required: true,
         trim: true
     },
+    epsDate: {
+        type: Date,
+        required: false,
+        default: new Date(0),
+        trim: true
+    },
     compensationFund: { // Caja de Compensación
         type: String,
         required: true,
+        trim: true
+    },
+    compensationDate: {
+        type: Date,
+        required: false,
+        default: new Date(0),
         trim: true
     },
     pensionsAndSeverance: { // Pensiones y Cesantías
         type: String,
         required: true,
         trim: true
-    }
+    },
+    pensionsDate: {
+        type: Date,
+        required: false,
+        default: new Date(0),
+        trim: true
+    },
+    cesantias: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    cesantiasDate: {
+        type: Date,
+        required: false,
+        default: new Date(0),
+        trim: true
+    },
 });
 
 // Crea el modelo discriminador.
@@ -36,5 +71,5 @@ const UserInformationSchema = new Schema({
 // export default userInformationModel;
 
 export {
-    UserInformationSchema
+    UserParafiscalesSchema
 }

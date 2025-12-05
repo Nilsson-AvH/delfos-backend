@@ -1,13 +1,13 @@
 // Servicio de usuarios, se debe encargar de la comunicacion directa con la base de datos
 
-import { userInformationModel, userModel } from "../models/User.model.js";
+import { userParafiscalesModel, userModel } from "../models/User.model.js";
 
 const dbRegisterUser = async (newUser) => {
     return await userModel.create(newUser);
 };
 
 const dbRegisterUserInfo = async (newUser) => {
-    return await userInformationModel.create(newUser);
+    return await userParafiscalesModel.create(newUser);
 };
 
 const dbGetAllUsers = async () => {
@@ -23,10 +23,11 @@ const dbDeleteUserById = async (_id) => {
 };
 
 const dbUpdateUserById = async (_id, updatedData) => {
-    return await userModel.findByIdAndUpdate(
+    return await userParafiscalesModel.findByIdAndUpdate(
         _id,            // ID
         updatedData,    // Datos a actualizar
-        { new: true }   // Opciones Configuraciones, new: true para que retorne el documento actualizado
+        { new: true        
+         }   // Opciones Configuraciones, new: true para que retorne el documento actualizado
     );
     // return await userModel.findOneAndUpdate({ _id }, updatedData, { new: true });
 }

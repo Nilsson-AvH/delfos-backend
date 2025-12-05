@@ -9,7 +9,7 @@ const createUser = async (req, res) => {
 
         let dataRegistered;
 
-        if( inputData.userType === "UserInformation") {
+        if( inputData.userType === "UserParafiscales") {
             dataRegistered = await dbRegisterUserInfo( inputData );
         }
         else {
