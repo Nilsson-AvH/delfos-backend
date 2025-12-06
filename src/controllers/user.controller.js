@@ -9,8 +9,16 @@ const createUser = async (req, res) => {
 
         let dataRegistered;
 
-        if( inputData.userType === "UserParafiscales") {
-            dataRegistered = await dbRegisterUserInfo( inputData );
+        if (inputData.userType === "UserParafiscales") {
+            // Mapeo de compatibilidad para el nuevo esquema de herencia
+            if (inputData.password) {
+                inputData.userType = 'AdministrativeUser';
+
+            } else {
+                inputData.userType = 'OperationalUser';
+
+            }
+            dataRegistered = await dbRegisterUserInfo(inputData);
         }
         else {
             // Paso dos: Registrar los datos en la base de datos usando el userModel
@@ -20,7 +28,7 @@ const createUser = async (req, res) => {
         // Lo muestra en la consola
         // console.log(inputData);
 
-        
+
 
 
         // Paso tres: Responde con un JSON al cliente

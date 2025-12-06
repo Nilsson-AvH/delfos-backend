@@ -1,13 +1,18 @@
 // Servicio de usuarios, se debe encargar de la comunicacion directa con la base de datos
 
-import { userParafiscalesModel, userModel } from "../models/User.model.js";
+import userModel from "../models/users/User.model.js";
+import OperationalUser from "../models/users/UserOperational.model.js";
+import AdministrativeUser from "../models/users/UserAdministrative.model.js";
+import ClientUser from "../models/users/UserClient.model.js";
 
 const dbRegisterUser = async (newUser) => {
     return await userModel.create(newUser);
 };
 
 const dbRegisterUserInfo = async (newUser) => {
-    return await userParafiscalesModel.create(newUser);
+    // Note: 'UserParafiscales' discriminator no longer exists.
+    // Ensure newUser.userType is one of: 'OperationalUser', 'AdministrativeUser', 'ClientUser'
+    return await userModel.create(newUser);
 };
 
 const dbGetAllUsers = async () => {
@@ -23,11 +28,12 @@ const dbDeleteUserById = async (_id) => {
 };
 
 const dbUpdateUserById = async (_id, updatedData) => {
-    return await userParafiscalesModel.findByIdAndUpdate(
+    return await userModel.findByIdAndUpdate(
         _id,            // ID
         updatedData,    // Datos a actualizar
-        { new: true        
-         }   // Opciones Configuraciones, new: true para que retorne el documento actualizado
+        {
+            new: true
+        }   // Opciones Configuraciones, new: true para que retorne el documento actualizado
     );
     // return await userModel.findOneAndUpdate({ _id }, updatedData, { new: true });
 }

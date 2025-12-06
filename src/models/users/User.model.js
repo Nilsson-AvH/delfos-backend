@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { UserParafiscalesSchema } from './UserParafiscales.model.js';
 const Schema = mongoose.Schema;
 
 // Define el esquema base para User
@@ -15,7 +14,7 @@ const UserSchema = new Schema({
         type: String,
         required: true,
         trim: true
-    },    
+    },
     lastName: {
         type: String,
         required: true,
@@ -36,12 +35,7 @@ const UserSchema = new Schema({
         trim: true,
         match: [/.+@.+\..+/, "Por favor, ingrese un correo válido"] // Validación de formato básico
     },
-    password: { // Contraseña
-        type: String,
-        required: true,
-        // **Recomendación:** Implementar hashing (e.g., bcrypt) antes de guardar
-        // Puedes usar un pre-save hook en Mongoose para esto.
-    },    
+    // Password removido de la clase base. Se agrega en los discriminadores específicos.
     role: {
         type: String,
         required: true,
@@ -63,9 +57,4 @@ const UserSchema = new Schema({
 // Crea el modelo base
 const userModel = mongoose.model('User', UserSchema);
 
-const userParafiscalesModel = userModel.discriminator( 'UserParafiscales', UserParafiscalesSchema );
-
-export {
-    userModel,
-    userParafiscalesModel
-};
+export default userModel;

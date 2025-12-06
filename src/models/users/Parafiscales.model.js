@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 
 // Define el esquema discriminador para UserInformation
 // Este extiende al esquema User y añade las nuevas propiedades
-const UserParafiscalesSchema = new Schema({
+const ParafiscalesSchema = new Schema({
     // Propiedades específicas de seguridad social / Información laboral
     arl: {
         type: String,
@@ -71,5 +71,5 @@ const UserParafiscalesSchema = new Schema({
 // export default userInformationModel;
 
 export {
-    UserParafiscalesSchema
+    ParafiscalesSchema
 }
