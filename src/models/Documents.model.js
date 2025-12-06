@@ -1,6 +1,8 @@
-const DocumentSchema = new mongoose.Schema({
+import { Schema, model } from "mongoose";
+
+const DocumentSchema = new Schema({
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User',
         required: [true, 'El documento debe estar asociado a un usuario.'],
         index: true
@@ -38,7 +40,7 @@ const DocumentSchema = new mongoose.Schema({
     // CAMPO CLAVE PARA LA ASOCIACIÓN
     // ==========================================================
     contractDetails: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Contract', // ¡Referencia al nuevo modelo Contract!
         required: false // Solo es obligatorio si documentType es 'Contrato'
     },
@@ -58,14 +60,15 @@ const DocumentSchema = new mongoose.Schema({
 
 // AÑADIR VALIDACIÓN (Middleware de Mongoose)
 // Opcional pero recomendado: Asegurar que si es un 'Contrato', la referencia exista.
-DocumentSchema.pre('save', function (next) {
-    if (this.documentType === 'Contrato' && !this.contractDetails) {
-        // Si es un Contrato, contractDetails DEBE estar asociado.
-        // Esto se gestiona en la lógica de tu servicio al crear ambos documentos.
-        // next(new Error('Los documentos de tipo Contrato deben tener detalles contractuales asociados.'));
-    }
-    next();
-});
+// DocumentSchema.pre('save', function (next) {
+//     if (this.documentType === 'Contrato' && !this.contractDetails) {
+//         // Si es un Contrato, contractDetails DEBE estar asociado.
+//         // Esto se gestiona en la lógica de tu servicio al crear ambos documentos.
+//         // next(new Error('Los documentos de tipo Contrato deben tener detalles contractuales asociados.'));
+//     }
+//     next();
+// });
 
-const Document = mongoose.model('Document', DocumentSchema);
-// module.exports = Document; // (Si lo exportas en un archivo separado)
+const DocumentModel = model('Document', DocumentSchema);
+
+export default DocumentModel; // (Si lo exportas en un archivo separado)
