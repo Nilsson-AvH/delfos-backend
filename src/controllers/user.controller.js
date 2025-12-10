@@ -1,7 +1,7 @@
 // Controlador de usuarios, se debe encargar de recibir las peticiones y enviar las respuestas
 
 import userModel from "../models/user.model.js";
-import { dbRegisterUser, dbGetAllUsers, dbGetUserById, dbDeleteUserById, dbUpdateUserById } from "../services/user.service.js";
+import { dbRegisterUser, dbGetAllUsers, dbGetUserById, dbDeleteUserById, dbUpdateUserById, dbGetUserByEmail } from "../services/user.service.js";
 
 const createUser = async (req, res) => {
     // se controla la exepcion que ocurre en el paso dos
@@ -9,8 +9,17 @@ const createUser = async (req, res) => {
         // Paso uno: Obteniendo los datos del body postman
         const inputData = req.body;
 
-        // Lo muestra en la consola
-        // console.log(inputData);
+        // Paso 1: Verificamos si el usuario existe
+
+        const userFound = await dbGetUserByEmail(inputData.email);
+
+        if (userFound) {
+            return res.json({
+                msg: `No se puede registrar, el usuario ya existe`
+            });
+        }
+
+        // Paso 2: Encriptamos la contraseña que envio el usuario
 
         // Paso dos: Registrar los datos en la base de datos usando el userModel
         const dataRegistered = await dbRegisterUser(inputData);

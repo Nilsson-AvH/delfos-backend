@@ -1,8 +1,7 @@
 import express from "express";         // Import the express module
 import dbConnection from "./config/mongo.config.js";
-// const dbConnection = require(`./config/mongo.config.js`); esto es con commonjs
+import authRoute from "./routes/auth.route.js";
 import usersRoute from "./routes/users.route.js";
-// import employeesRoute from "./routes/employees.route.js";
 
 const app = express();                      // Create an instance of express 
 const PORT = 3000;
@@ -20,7 +19,8 @@ app.get(`/health`, (req, res) => {
 //Middlewares express
 app.use(express.json()); //Middleware para parsear el body de la peticion JSON (Ejemplo matrix trinity helicopter)
 
-app.use(`/api/v1/users`, usersRoute);
+app.use('/api/v1/auth', authRoute);    //Login/Register/RenewTokin
+app.use(`/api/v1/users`, usersRoute);  //CRUD de usuarios cuando el usuario esta autenticado 
 // app.use(`/api/v1/employees`, employeesRoute);
 
 app.listen(PORT, () => console.log(`:) :) Server running on http://localhost:${PORT}`));
