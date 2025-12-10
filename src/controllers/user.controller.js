@@ -2,6 +2,7 @@
 
 import userModel from "../models/user.model.js";
 import { dbRegisterUser, dbGetAllUsers, dbGetUserById, dbDeleteUserById, dbUpdateUserById, dbGetUserByEmail } from "../services/user.service.js";
+import { encryptPassword } from "../helpers/bcrypt.helper.js";
 
 const createUser = async (req, res) => {
     // se controla la exepcion que ocurre en el paso dos
@@ -20,6 +21,8 @@ const createUser = async (req, res) => {
         }
 
         // Paso 2: Encriptamos la contraseña que envio el usuario
+        inputData.password = encryptPassword(inputData.password); // Me devuelve la contraseña encriptada
+        console.log(inputData);
 
         // Paso dos: Registrar los datos en la base de datos usando el userModel
         const dataRegistered = await dbRegisterUser(inputData);

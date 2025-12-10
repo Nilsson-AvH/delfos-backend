@@ -35,7 +35,7 @@ const userSchema = new Schema({
         // Modificaciones
         trim: true,
         minlength: 8,       //Minimo 8 caracteres
-        maxlength: 12      //Maximo 12 caracteres
+        //maxlength: 12      //Maximo 12 caracteres
         // TODO: Aprender Expresiones Regulares
     },
     role: {
