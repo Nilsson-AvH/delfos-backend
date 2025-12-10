@@ -24,6 +24,9 @@ const createUser = async (req, res) => {
         inputData.password = encryptPassword(inputData.password); // Me devuelve la contraseña encriptada
         console.log(inputData);
 
+        // Paso 3: Eliminar propiedades con datos sensibles
+        // delete inputData.pakssword;
+
         // Paso dos: Registrar los datos en la base de datos usando el userModel
         const dataRegistered = await dbRegisterUser(inputData);
 

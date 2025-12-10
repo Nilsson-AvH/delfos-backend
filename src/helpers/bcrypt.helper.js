@@ -15,8 +15,10 @@ const encryptPassword = (passwordUser) => {
 };
 
 // Verificar comprarar la contraseña
-const verifyEncryptedPassword = async (password, hash) => {
-    return await bcrypt.compare(password, hash);
+const verifyEncryptedPassword = async (originalPassword, hashPassword) => {
+    return await bcrypt.compare(
+        originalPassword, // password original que viene del body
+        hashPassword);
 };
 
 export {
