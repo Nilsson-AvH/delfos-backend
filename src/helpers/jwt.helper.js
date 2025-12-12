@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 const generateToken = (payload) => {
     const token = jwt.sign(
         payload, // Carga util para generar el token
-        `elgatofeliz`,//process.env.JWT_SECRET,// Palabra secreta o Clave secreta
+        process.env.JWT_SEED,//process.env.JWT_SECRET,// Palabra secreta o Clave secreta
         // Opciones de configuracion del token
         {
             expiresIn: '1h'
@@ -16,7 +16,7 @@ const generateToken = (payload) => {
 const verifyToken = (token) => {
     return jwt.verify(
         token,    // Token a verificar
-        `elgatofeliz` // Clave secreta
+        process.env.JWT_SEED // Clave secreta
     );
 }
 
