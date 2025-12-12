@@ -1,20 +1,22 @@
 // const express = require("express"); from CommonJS
 import express from "express";
 import { createUser, deleteUserById, getAllUsers, getUserById, updateUserById } from "../controllers/user.controller.js";
+import authorizationUser from "../middleweares/authorization.middleweare.js";
+import authenticationUser from "../middleweares/authentication.middleweare.js";
 
 const router = express.Router();
 
 // Definicion de las rutas (EndPoints)
 
-router.post(`/`, createUser)
+router.post(`/`, [authenticationUser, authorizationUser], createUser)
 
-router.get(`/`, getAllUsers)
+router.get(`/`, [authenticationUser, authorizationUser], getAllUsers)
 
-router.get(`/:idUser`, getUserById) // Parametro de ruta: Crear un parametro de ruta que funje como variable para obtener un usuario por id
+router.get(`/:idUser`, [authenticationUser, authorizationUser], getUserById) // Parametro de ruta: Crear un parametro de ruta que funje como variable para obtener un usuario por id
 
-router.delete(`/:idUser`, deleteUserById)
+router.delete(`/:idUser`, [authenticationUser, authorizationUser], deleteUserById)
 
-router.patch(`/:idUser`, updateUserById)
+router.patch(`/:idUser`, [authenticationUser, authorizationUser], updateUserById)
 
 // router.put(`/`, (req, res) => {
 //     res.json({ msg: `Update users actualizatodos los usuarios` });
