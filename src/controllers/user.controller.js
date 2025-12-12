@@ -24,17 +24,17 @@ const createUser = async (req, res) => {
         inputData.password = encryptPassword(inputData.password); // Me devuelve la contraseña encriptada
         console.log(inputData);
 
-        // Paso 3: Eliminar propiedades con datos sensibles
-        // delete inputData.pakssword;
-
         // Paso dos: Registrar los datos en la base de datos usando el userModel
         const dataRegistered = await dbRegisterUser(inputData);
 
+        // Paso 3: Eliminar propiedades con datos sensibles
+        const jsonUserFound = dataRegistered.toJSON();
+        delete jsonUserFound.password;
 
         // Paso tres: Responde con un JSON al cliente
         res.json({
             // msg: `Create users`,
-            dataRegistered  //ECMAScript 2015 (ES6) Shorthand property (data: data)
+            user: jsonUserFound  //ECMAScript 2015 (ES6) Shorthand property (data: data)
         });
 
     } catch (error) {
