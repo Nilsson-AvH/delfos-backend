@@ -2,7 +2,6 @@
 // const mongoose = require(`mongoose`); esto es commonJS
 import mongoose from "mongoose";
 
-// const MONGODB_URI = `mongodb://localhost:27017/db-delfos`;
 const MONGODB_URI = process.env.DB_URI || `mongodb+srv://nlr519com_db_user:Delfos@cluster0.74ccfpr.mongodb.net/db-delfos-default`;
 
 const dbConnection = async () => {
