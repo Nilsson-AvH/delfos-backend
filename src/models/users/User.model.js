@@ -40,7 +40,7 @@ const UserSchema = new Schema({
         type: String,
         required: true,
         default: "registered",
-        enum: ['root', 'admin', 'auditor', 'registered'] // Define roles válidos        
+        enum: ['root', 'admin', 'auditor', 'registered', 'client', 'operational', `clientManager`] // Define roles válidos        
     },
     status: { // Estado
         type: String,

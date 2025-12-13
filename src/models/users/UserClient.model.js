@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
-import userModel from './User.model.js';
 
 const ClientUserSchema = new mongoose.Schema({
-    password: {
-        type: String,
-        required: true
-    },
     nit: {
         type: String,
         required: true,
@@ -31,9 +26,14 @@ const ClientUserSchema = new mongoose.Schema({
         required: false,
         trim: true,
         match: [/.+@.+\..+/, "Por favor, ingrese un correo válido"]
+    },
+    clientManager: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ClientManagerUser',
+        required: true
     }
 });
 
-const ClientUser = userModel.discriminator('ClientUser', ClientUserSchema);
+const ClientUser = mongoose.model('ClientUser', ClientUserSchema);
 
 export default ClientUser;

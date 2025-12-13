@@ -18,6 +18,12 @@ const ParafiscalesSchema = new Schema({
         default: new Date(0),
         trim: true
     },
+    arlRisk: {
+        type: String,
+        required: true,
+        enum: [`R3`, `R4`, `R5`],
+        trim: true
+    },
     eps: {
         type: String,
         required: true,
@@ -62,14 +68,22 @@ const ParafiscalesSchema = new Schema({
         default: new Date(0),
         trim: true
     },
+    seguroVida: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    seguroVidaDate: {
+        type: Date,
+        required: false,
+        default: new Date(0),
+        trim: true
+    }
+}, {
+    timestamps: true, // Agrega createdAt y updatedAt automáticamente
+    versionKey: false
 });
 
-// Crea el modelo discriminador.
-// El primer argumento es la clave que identificará a este tipo de documento (e.g., 'Employee' o 'FullInfoUser').
-// const userInformationModel = User.discriminator('UserInformation', UserInformationSchema);
+const parafiscalesModel = mongoose.model('Parafiscales', ParafiscalesSchema);
 
-// export default userInformationModel;
-
-export {
-    ParafiscalesSchema
-}
+export default parafiscalesModel
