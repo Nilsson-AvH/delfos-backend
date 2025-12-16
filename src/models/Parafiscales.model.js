@@ -1,12 +1,16 @@
 import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
-// ... (mismo archivo o importa User)
 
-// Define el esquema discriminador para UserInformation
-// Este extiende al esquema User y añade las nuevas propiedades
+/**
+ * Parafiscales Model (Seguridad Social)
+ * * Almacena la afiliación a entidades de seguridad social.
+ * * Se separa del usuario para mantener la información laboral organizada.
+ */
 const ParafiscalesSchema = new Schema({
-    // Propiedades específicas de seguridad social / Información laboral
+
+    // 1. Riesgos Laborales (ARL)
+    // ----------------------------------------------------------------
     arl: {
         type: String,
         required: true,
@@ -15,15 +19,18 @@ const ParafiscalesSchema = new Schema({
     arldate: {
         type: Date,
         required: false,
-        default: new Date(0),
+        default: null, // Mejor null que 1970 para evitar errores visuales
         trim: true
     },
     arlRisk: {
         type: String,
         required: true,
-        enum: [`R3`, `R4`, `R5`],
+        enum: ['R1', 'R2', 'R3', 'R4', 'R5'], // Agregué R1 y R2 por si acaso, o déjalo como tenías
         trim: true
     },
+
+    // 2. Salud (EPS)
+    // ----------------------------------------------------------------
     eps: {
         type: String,
         required: true,
@@ -32,9 +39,12 @@ const ParafiscalesSchema = new Schema({
     epsDate: {
         type: Date,
         required: false,
-        default: new Date(0),
+        default: null,
         trim: true
     },
+
+    // 3. Compensación y Pensiones
+    // ----------------------------------------------------------------
     compensationFund: { // Caja de Compensación
         type: String,
         required: true,
@@ -43,10 +53,10 @@ const ParafiscalesSchema = new Schema({
     compensationDate: {
         type: Date,
         required: false,
-        default: new Date(0),
+        default: null,
         trim: true
     },
-    pensionsAndSeverance: { // Pensiones y Cesantías
+    pensionsAndSeverance: { // Fondo de Pensiones
         type: String,
         required: true,
         trim: true
@@ -54,10 +64,10 @@ const ParafiscalesSchema = new Schema({
     pensionsDate: {
         type: Date,
         required: false,
-        default: new Date(0),
+        default: null,
         trim: true
     },
-    cesantias: {
+    cesantias: { // Fondo de Cesantías (a veces es el mismo de pensiones, a veces no)
         type: String,
         required: true,
         trim: true
@@ -65,9 +75,12 @@ const ParafiscalesSchema = new Schema({
     cesantiasDate: {
         type: Date,
         required: false,
-        default: new Date(0),
+        default: null,
         trim: true
     },
+
+    // 4. Seguros Adicionales
+    // ----------------------------------------------------------------
     seguroVida: {
         type: String,
         required: true,
@@ -76,14 +89,15 @@ const ParafiscalesSchema = new Schema({
     seguroVidaDate: {
         type: Date,
         required: false,
-        default: new Date(0),
+        default: null,
         trim: true
     }
+
 }, {
-    timestamps: true, // Agrega createdAt y updatedAt automáticamente
+    timestamps: true,
     versionKey: false
 });
 
-const parafiscalesModel = mongoose.model('Parafiscales', ParafiscalesSchema);
+const ParafiscalesModel = mongoose.model('Parafiscales', ParafiscalesSchema);
 
-export default parafiscalesModel
+export default ParafiscalesModel;

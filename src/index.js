@@ -1,7 +1,7 @@
 import express from "express";         // Import the express module
 import dbConnection from "./config/mongo.config.js";
 
-import usersRoute from "./routes/users.route.js";
+import usersRoute from "./routes/users/users.route.js";
 import contractsRoute from "./routes/contracts.route.js";
 import documentsRoute from "./routes/documents.route.js";
 

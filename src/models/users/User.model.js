@@ -1,13 +1,22 @@
 import mongoose from 'mongoose';
+
 const Schema = mongoose.Schema;
 
-// Define el esquema base para User
+/**
+ * User Model (Identidad Principal)
+ * * Este esquema representa al HUMANO en el sistema (La identidad base).
+ * No contiene contraseñas ni datos laborales específicos, solo la información
+ * inmutable de la persona. Los perfiles (Admin, Operativo, Manager) 
+ * apuntarán a este ID.
+ */
 const UserSchema = new Schema({
-    // Propiedades de identificación y personales
-    nuip: { // Cédula de ciudadanía
+
+    // 1. Identificación Personal
+    // ----------------------------------------------------------------
+    nuip: {
         type: String,
         required: true,
-        unique: true, // Asegura que la CC sea única
+        unique: true, // La cédula de ciudadanía es el identificador único principal
         trim: true
     },
     names: {
@@ -22,39 +31,52 @@ const UserSchema = new Schema({
     },
     secondLastName: {
         type: String,
-        required: false, // Opcional
+        required: false, // Campo opcional
         trim: true
     },
 
-    // Propiedades de autenticación y sistema
+    // 2. Datos de Sistema y Contacto
+    // ----------------------------------------------------------------
     email: {
         type: String,
         required: true,
-        unique: true, // Asegura que el correo sea único
+        unique: true, // El correo también funciona como llave única de acceso
         lowercase: true,
         trim: true,
-        match: [/.+@.+\..+/, "Por favor, ingrese un correo válido"] // Validación de formato básico
+        match: [/.+@.+\..+/, "Por favor, ingrese un correo válido"]
     },
-    // Password removido de la clase base. Se agrega en los discriminadores específicos.
+
+    // Nota: El Password no se guarda aquí. Se gestiona en los perfiles 
+    // que requieren login (ej: AdministrativeUser).
+
     role: {
         type: String,
         required: true,
         default: "registered",
-        enum: ['root', 'admin', 'auditor', 'registered', 'client', 'operational', `clientManager`] // Define roles válidos        
+        // Definición estricta de roles permitidos en el sistema
+        enum: [
+            'root',
+            'admin',
+            'auditor',
+            'registered',
+            'client',
+            'operational',
+            'clientManager' // Corregido a camelCase para consistencia
+        ]
     },
-    status: { // Estado
+
+    status: {
         type: String,
         required: true,
-        enum: ['active', 'inactive', 'suspended'], // Define estados válidos
+        enum: ['active', 'inactive', 'suspended'],
         default: 'active'
     }
+
 }, {
-    timestamps: true, // Agrega createdAt y updatedAt automáticamente
-    discriminatorKey: 'userType', // Clave usada para diferenciar los discriminadores
-    versionKey: false
+    timestamps: true, // Gestiona automáticamente createdAt y updatedAt
+    versionKey: false // Evita que Mongoose cree el campo __v
 });
 
-// Crea el modelo base
 const userModel = mongoose.model('User', UserSchema);
 
 export default userModel;

@@ -4,11 +4,10 @@ import { createDocument, deleteDocumentById, getAllDocuments, getDocumentById, u
 const router = Router();
 
 // Define las rutas para /api/v1/documents
-router.get(`/`, getAllDocuments);
 router.post(`/`, createDocument);
-router.get(`/:id`, getDocumentById);
-router.patch(`/:id`, updateDocumentById);
-router.delete(`/:id`, deleteDocumentById);
-
+router.get(`/`, getAllDocuments);
+router.get(`/:idDocument`, getDocumentById);
+router.patch(`/:idDocument`, updateDocumentById);
+router.delete(`/:idDocument`, deleteDocumentById);
 
 export default router;

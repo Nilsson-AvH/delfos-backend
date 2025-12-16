@@ -4,11 +4,10 @@ import { createContract, deleteContractById, getAllContracts, getContractById, u
 const router = Router();
 
 // Define las rutas para /api/v1/contracts
-router.get(`/`, getAllContracts);
 router.post(`/`, createContract);
-router.get(`/:id`, getContractById);
-router.patch(`/:id`, updateContractById);
-router.delete(`/:id`, deleteContractById);
-
+router.get(`/`, getAllContracts);
+router.get(`/:idContract`, getContractById);
+router.patch(`/:idContract`, updateContractById);
+router.delete(`/:idContract`, deleteContractById);
 
 export default router;

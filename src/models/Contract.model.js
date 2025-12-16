@@ -1,50 +1,53 @@
 import mongoose from 'mongoose';
 
-// ==========================================================
-// 1. ESQUEMA ESPECÍFICO PARA CONTRATOS
-//    Esta es la colección de datos editable que solicitaste.
-// ==========================================================
-const ContractSchema = new mongoose.Schema({
-    // Referencia de vuelta al registro de documento genérico.
-    // Esto garantiza que cada contrato editable tiene un registro en la tabla general.
-    document: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Document',
-        required: true,
-        unique: true // Asegura la relación 1:1: Un Document solo puede tener 1 Contract.
-    },
+const Schema = mongoose.Schema;
 
-    // --------------------------------------------------------
-    // Campos específicos y editables del Contrato
-    // --------------------------------------------------------
+/**
+ * Contract Model (Acuerdo Laboral - Data)
+ * * Este esquema almacena la INFORMACIÓN VIVA del contrato (sueldos, fechas).
+ * * NO guarda el archivo PDF (eso va en Document.model.js).
+ * * Se relaciona directamente con UserOperational.
+ */
+const ContractSchema = new Schema({
 
-    // Contenido del contrato (la data editable, puede ser texto, JSON, o Markdown)
+    // 1. Datos Económicos y Legales
+    // ----------------------------------------------------------------
     contractContent: {
-        type: String,
+        type: String, // Puede ser texto plano, HTML o ID de plantilla
         required: [true, 'El contenido contractual es obligatorio.'],
         default: ''
     },
-
-    // Valor del contrato
     contractValue: {
         type: Number,
         required: [true, 'El valor del contrato es obligatorio.'],
         min: 0
     },
-
-    // Tiempo por el cual se contrata (ejemplo: en meses)
     contractTermMonths: {
         type: Number,
         required: [true, 'El plazo del contrato es obligatorio.'],
         min: 1
     },
 
-    // Podrías añadir aquí otros campos únicos para Contratos (ej: 'firmas', 'cláusulas', etc.)
+    // 2. Vigencia y Estado
+    // ----------------------------------------------------------------
+    startDate: {
+        type: Date,
+        required: true
+    },
+    endDate: {
+        type: Date,
+        required: true
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    }
 
 }, {
-    timestamps: true // Para rastrear cuándo fue creado y editado el contenido
+    timestamps: true,
+    versionKey: false
 });
 
-const Contract = mongoose.model('Contract', ContractSchema);
+const ContractModel = mongoose.model('Contract', ContractSchema);
 
-export default Contract; // (Si lo exportas en un archivo separado)
+export default ContractModel;
