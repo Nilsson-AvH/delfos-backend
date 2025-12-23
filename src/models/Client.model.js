@@ -16,7 +16,8 @@ const ClientSchema = new Schema({
     clientManager: {
         type: Schema.Types.ObjectId,
         ref: 'ClientManagerUser',
-        required: true,
+        required: false,
+        default: null,
         index: true
     },
 

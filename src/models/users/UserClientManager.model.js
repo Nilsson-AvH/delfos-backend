@@ -5,8 +5,7 @@ const Schema = mongoose.Schema;
 /**
  * Client Manager User Model (Gestor de Cliente)
  * * Este esquema representa al HUMANO encargado de administrar una empresa (Cliente).
- * Es la persona que se "loguea" para gestionar la cuenta de una compañía.
- * Contiene datos personales extendidos necesarios para la representación legal.
+ * * Refactor: Campos actualizados a Inglés.
  */
 const ClientManagerUserSchema = new Schema({
 
@@ -22,25 +21,25 @@ const ClientManagerUserSchema = new Schema({
 
     // 2. Información Personal y de Identificación
     // ----------------------------------------------------------------
-    fechaNacimiento: {
+    birthDate: { // Antes: fechaNacimiento
         type: Date,
         required: true
     },
-    lugarNacimiento: {
+    birthPlace: { // Antes: lugarNacimiento
         type: String,
         required: true,
         trim: true
     },
-    fechaExpedicion: { // Fecha de expedición del documento de identidad
+    issueDate: { // Antes: fechaExpedicion (Fecha de expedición del documento)
         type: Date,
         required: true
     },
-    lugarExpedicion: {
+    issuePlace: { // Antes: lugarExpedicion
         type: String,
         required: true,
         trim: true
     },
-    nacionalidad: {
+    nationality: { // Antes: nacionalidad
         type: String,
         required: true,
         trim: true
@@ -48,7 +47,7 @@ const ClientManagerUserSchema = new Schema({
 
     // 3. Datos de Contacto y Ubicación
     // ----------------------------------------------------------------
-    celulares: [{
+    phones: [{ // Antes: celulares
         type: String,
         required: true,
         trim: true

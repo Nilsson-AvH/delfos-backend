@@ -12,16 +12,18 @@ import administrativeUser from "../models/users/UserAdministrative.model.js";
 import clientManagerUser from "../models/users/UserClientManager.model.js";
 
 // =====================================================================
-// 1. CREACIÓN DE REGISTROS (CREATE)
+// 1. CREACION DE USUARIOS
 // =====================================================================
 
 /**
- * Registra un Usuario Base (Identidad) en la colección 'users'.
- * @param {Object} newUser - Objeto con datos básicos (email, nombre, rol).
- * @returns {Promise} Retorna el documento creado.
+ * Registra un usuario base. Soporta transacciones.
+ * @param {Object} newUser - User data.
+ * @param {Object} [session] - (Optional) Mongoose session for transactions.
  */
-const dbRegisterUser = async (newUser) => {
-    // .create() valida los datos contra el Schema y guarda en Mongo.
+const dbRegisterUser = async (newUser, session = null) => {
+    if (session) {
+        return await userModel.create([newUser], { session });
+    }
     return await userModel.create(newUser);
 };
 
@@ -34,111 +36,130 @@ const dbRegisterOperationalUser = async (newUser) => {
 };
 
 /**
- * Registra un Usuario Administrativo (Admin/Auditor).
- * @param {Object} newUser - Objeto con credenciales de acceso.
+ * Registra un Usuario Administrativo (Gerente/Encargado).
+ * @param {Object} newUser - Objeto con datos laborales y personales.
  */
 const dbRegisterAdministrativeUser = async (newUser) => {
     return await administrativeUser.create(newUser);
 };
 
 /**
- * Registra un Gestor de Cliente (Representante de la empresa).
- * @param {Object} newUser - Objeto con datos del manager.
+ * Registra un Usuario Gerente de Clientes (Gerente de Clientes).
+ * @param {Object} newUser - Objeto con datos laborales y personales.
  */
 const dbRegisterClientManagerUser = async (newUser) => {
     return await clientManagerUser.create(newUser);
 };
 
 // =====================================================================
-// 2. LECTURA DE DATOS - LISTAR TODOS (READ ALL)
+// 2. LECTURA DE DATOS  - LISTAR TODO
 // =====================================================================
 
 /**
- * Obtiene TODOS los usuarios base del sistema.
- * @returns {Promise<Array>} Array con todos los documentos.
+ * Obtiene todos los usuarios base del sistema.
+ * @returns {Array} Array de usuarios.
  */
 const dbGetAllUsers = async () => {
     return await userModel.find();
 };
 
 /**
- * Obtiene TODOS los usuarios operativos.
+ * Obtiene todos los usuarios operativos (vigilantes/operarios).
+ * @returns {Array} Array de usuarios operativos.
  */
 const dbGetAllOperationalUsers = async () => {
     return await operationalUser.find();
 };
 
 /**
- * Obtiene TODOS los usuarios administrativos.
+ * Obtiene todos los usuarios administrativos (gerentes/encargados).
+ * @returns {Array} Array de usuarios administrativos.
  */
 const dbGetAllAdministrativeUsers = async () => {
     return await administrativeUser.find();
 };
 
 /**
- * Obtiene TODOS los gestores de clientes.
+ * Obtiene todos los usuarios gerentes de clientes (gerentes de clientes).
+ * @returns {Array} Array de usuarios gerentes de clientes.
  */
 const dbGetAllClientManagerUsers = async () => {
     return await clientManagerUser.find();
 };
 
-
 // =====================================================================
-// 3. LECTURA DE DATOS - BUSCAR POR ID (READ ONE)
+// 3. LECTURA DE DATOS - LISTAR POR ID (READ ONE BY ID)
 // =====================================================================
 
 /**
- * Busca un usuario base por su ID único (_id de MongoDB).
- * @param {String} _id - Identificador del usuario.
+ * Obtiene un usuario base del sistema por su ID.
+ * @param {string} _id - ID del usuario.
+ * @returns {Object} Usuario encontrado.
  */
 const dbGetUserById = async (_id) => {
     return await userModel.findOne({ _id });
 };
 
+/**
+ * Obtiene un usuario operativo (vigilante/operario) por su ID.
+ * @param {string} _id - ID del usuario.
+ * @returns {Object} Usuario operativo encontrado.
+ */
 const dbGetOperationalUserById = async (_id) => {
     return await operationalUser.findOne({ _id });
 };
 
+/**
+ * Obtiene un usuario administrativo (gerente/encargado) por su ID.
+ * @param {string} _id - ID del usuario.
+ * @returns {Object} Usuario administrativo encontrado.
+ */
 const dbGetAdministrativeUserById = async (_id) => {
     return await administrativeUser.findOne({ _id });
 };
 
+/**
+ * Obtiene un usuario gerente de clientes (gerente de clientes) por su ID.
+ * @param {string} _id - ID del usuario.
+ * @returns {Object} Usuario gerente de clientes encontrado.
+ */
 const dbGetClientManagerUserById = async (_id) => {
     return await clientManagerUser.findOne({ _id });
 };
 
 // =====================================================================
-// 3.1. LECTURA DE PERFILES ESPECÍFICOS (POR USER ID)
+// 3.1. LECTURA DE DATOS ESPECIFICOS - LISTAR POR ID (READ SPECIFIC PROFILES BY USER ID)
 // =====================================================================
 
 /**
- * Busca el perfil OPERATIVO asociado a un User ID.
- * Incluye (.populate) toda la información relacionada: Cliente, Contrato, Salud, Docs.
+ * Obtiene el perfil operativo asociado con un ID de usuario.
+ * Refactor: Actualizado para usar nombres de campos en inglés para populate.
  */
 const dbGetOperationalProfileByUserId = async (userId) => {
     return await operationalUser.findOne({ user: userId })
-        .populate('clienteActual', 'companyName nit') // Trae solo nombre y NIT de la empresa
-        .populate('contractActual')                   // Trae todo el contrato
-        .populate('parafiscalesActuales')             // Trae toda la seguridad social
-        .populate('documents');                       // Trae el array de documentos
+        .populate('user')                               // Trae el usuario
+        .populate('currentClient', 'companyName nit')   // Trae el cliente actual
+        .populate('currentContract')                    // Trae el contrato actual
+        .populate('currentSocialSecurity')              // Trae los parafiscales (Social Security) actuales
+        .populate('documents');                         // Trae los documentos
 };
 
 /**
- * Busca el perfil ADMINISTRATIVO asociado a un User ID.
+ * Obtiene el perfil administrativo asociado con un ID de usuario.
  */
 const dbGetAdministrativeProfileByUserId = async (userId) => {
     return await administrativeUser.findOne({ user: userId });
 };
 
 /**
- * Busca el perfil GESTOR DE CLIENTE asociado a un User ID.
+ * Obtiene el perfil gerente de clientes asociado con un ID de usuario.
  */
 const dbGetClientManagerProfileByUserId = async (userId) => {
     return await clientManagerUser.findOne({ user: userId });
 };
 
 // =====================================================================
-// 4. ACTUALIZACIÓN DE DATOS (UPDATE)
+// 4. ACTUALIZACIÓN DE DATOS - ACTUALIZAR POR ID (UPDATE BY ID)
 // =====================================================================
 
 /**
@@ -148,86 +169,115 @@ const dbGetClientManagerProfileByUserId = async (userId) => {
  * @returns {Promise} El documento YA actualizado.
  */
 const dbUpdateUserById = async (_id, updatedData) => {
-    return await userModel.findByIdAndUpdate(
-        _id,           // 1. A quién actualizo
-        updatedData,   // 2. Con qué datos
-        { new: true }  // 3. Opciones: { new: true } devuelve el dato nuevo, no el viejo.
-    );
+    return await userModel.findByIdAndUpdate(_id, updatedData, { new: true });
 };
 
+/**
+ * Actualiza un usuario operativo por su ID.
+ * @param {String} _id - ID del usuario a modificar.
+ * @param {Object} updatedData - Objeto con los campos a cambiar.
+ * @returns {Promise} El documento YA actualizado.
+ */
 const dbUpdateOperationalUserById = async (_id, updatedData) => {
     return await operationalUser.findByIdAndUpdate(_id, updatedData, { new: true });
 };
 
+/**
+ * Actualiza un usuario administrativo por su ID.
+ * @param {String} _id - ID del usuario a modificar.
+ * @param {Object} updatedData - Objeto con los campos a cambiar.
+ * @returns {Promise} El documento YA actualizado.
+ */
 const dbUpdateAdministrativeUserById = async (_id, updatedData) => {
     return await administrativeUser.findByIdAndUpdate(_id, updatedData, { new: true });
 };
 
+/**
+ * Actualiza un usuario gerente de clientes por su ID.
+ * @param {String} _id - ID del usuario a modificar.
+ * @param {Object} updatedData - Objeto con los campos a cambiar.
+ * @returns {Promise} El documento YA actualizado.
+ */
 const dbUpdateClientManagerUserById = async (_id, updatedData) => {
     return await clientManagerUser.findByIdAndUpdate(_id, updatedData, { new: true });
 };
 
 
 // =====================================================================
-// 5. ELIMINACIÓN DE DATOS (DELETE)
+// 5. ELIMINACIÓN DE DATOS - ELIMINAR POR ID (DELETE BY ID)
 // =====================================================================
 
 /**
  * Elimina un usuario base por su ID.
  * @param {String} _id - ID del usuario a eliminar.
+ * @returns {Promise} El documento eliminado.
  */
 const dbDeleteUserById = async (_id) => {
     return await userModel.findOneAndDelete({ _id });
 };
 
+/**
+ * Elimina un usuario operativo por su ID.
+ * @param {String} _id - ID del usuario a eliminar.
+ * @returns {Promise} El documento eliminado.
+ */
 const dbDeleteOperationalUserById = async (_id) => {
     return await operationalUser.findOneAndDelete({ _id });
 };
 
+/**
+ * Elimina un usuario administrativo por su ID.
+ * @param {String} _id - ID del usuario a eliminar.
+ * @returns {Promise} El documento eliminado.
+ */
 const dbDeleteAdministrativeUserById = async (_id) => {
     return await administrativeUser.findOneAndDelete({ _id });
 };
 
+/**
+ * Elimina un usuario gerente de clientes por su ID.
+ * @param {String} _id - ID del usuario a eliminar.
+ * @returns {Promise} El documento eliminado.
+ */
 const dbDeleteClientManagerUserById = async (_id) => {
     return await clientManagerUser.findOneAndDelete({ _id });
 };
 
 
 // =====================================================================
-// EXPORTACIÓN DE FUNCIONES
+// EXPORTACIONES DE FUNCIONES
 // =====================================================================
-// Exportamos todo como un objeto para que la folder CONTROLLER pueda usarlos.
 export {
-    // Registro
+    // Register
     dbRegisterUser,
     dbRegisterOperationalUser,
     dbRegisterAdministrativeUser,
     dbRegisterClientManagerUser,
 
-    // Listar Todos
+    // List All
     dbGetAllUsers,
     dbGetAllOperationalUsers,
     dbGetAllAdministrativeUsers,
     dbGetAllClientManagerUsers,
 
-    // Buscar por ID
+    // Get by ID
     dbGetUserById,
     dbGetOperationalUserById,
     dbGetAdministrativeUserById,
     dbGetClientManagerUserById,
 
-    // Buscar por User ID
+    // Get by User ID (Profiles)
     dbGetOperationalProfileByUserId,
     dbGetAdministrativeProfileByUserId,
     dbGetClientManagerProfileByUserId,
 
-    // Actualizar
+    // Update
     dbUpdateUserById,
     dbUpdateOperationalUserById,
     dbUpdateAdministrativeUserById,
     dbUpdateClientManagerUserById,
 
-    // Eliminar
+    // Delete
     dbDeleteUserById,
     dbDeleteOperationalUserById,
     dbDeleteAdministrativeUserById,

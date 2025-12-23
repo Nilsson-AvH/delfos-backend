@@ -1,151 +1,113 @@
-import mongoose from 'mongoose';
-import OperationalUser from '../models/users/UserOperational.model.js';
-import Contract from '../models/Contract.model.js';
-import Parafiscales from '../models/Parafiscales.model.js';
-import Client from '../models/Client.model.js';
+// =====================================================================
+// OPERATIONAL HISTORY CONTROLLER
+// Handles lifecycle events: Transfers, Renewals, and Updates.
+// =====================================================================
+
+import Client from '../models/Client.model.js'; // Solo para validar existencia del cliente
+import {
+    dbTransferOperationalUser,
+    dbRenewOperationalContract,
+    dbUpdateOperationalSocialSecurity
+} from '../services/userOperational.service.js';
 
 // =====================================================================
-// 1. ROTACIÓN DE CLIENTE (Cambio de Puesto)
+// 1. TRANSFER (Rotación de Puesto)
 // =====================================================================
-export const rotateClient = async (req, res) => {
-    const { id } = req.params; // ID del UserOperational
-    const { newClientId, fechaCambio, motivo } = req.body;
-
-    try {
-        // 1. Verificar que el nuevo cliente exista
-        const newClientExists = await Client.findById(newClientId);
-        if (!newClientExists) return res.status(404).json({ message: "El nuevo cliente no existe" });
-
-        // 2. Buscar al empleado
-        const operational = await OperationalUser.findById(id);
-        if (!operational) return res.status(404).json({ message: "Empleado no encontrado" });
-
-        // 3. LOGICA DEL HISTORIAL
-        // Tomamos el cliente DONDE ESTABA hasta hoy y lo guardamos en el cajón del recuerdo
-        // Nota: Para 'fechaInicio' del historial, idealmente deberías tener guardado cuándo entró al cliente actual.
-        // Si no lo tienes, usamos la fecha de creación del registro o una fecha aproximada.
-
-        operational.historialClientes.push({
-            cliente: operational.clienteActual, // El cliente viejo (antes de cambiarlo)
-            fechaFin: fechaCambio || new Date(), // Hoy se acaba su turno allí
-            fechaInicio: operational.updatedAt, // (Simplificación) O podrías pedir este dato si lo tienes
-            motivoCambio: motivo || "Rotación operativa"
-        });
-
-        // 4. ACTUALIZAR AL PRESENTE
-        operational.clienteActual = newClientId;
-
-        await operational.save();
-
-        return res.status(200).json({
-            message: "Rotación de cliente exitosa",
-            currentClient: newClientExists.companyName
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: "Error en rotación", error: error.message });
-    }
-};
-
-
-// =====================================================================
-// 2. RENOVACIÓN DE CONTRATO (Nuevo Término)
-// =====================================================================
-export const renewContract = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+const transferOperationalUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const {
-            contractContent, contractValue, contractTermMonths, startDate, endDate
-        } = req.body;
+        const { newClientId, reason, previousStartDate } = req.body;
 
-        const operational = await OperationalUser.findById(id).session(session);
-        if (!operational) throw new Error("Empleado no encontrado");
+        // A. Validaciones Previas
+        if (!newClientId) {
+            return res.status(400).json({ msg: "Debe proporcionar el ID del nuevo cliente (newClientId)." });
+        }
 
-        // A. DESACTIVAR CONTRATO ANTERIOR
-        // Buscamos el contrato viejo y lo marcamos como inactivo
-        await Contract.findByIdAndUpdate(
-            operational.contractActual,
-            { isActive: false },
-            { session }
+        const clientExists = await Client.findById(newClientId);
+        if (!clientExists) {
+            return res.status(404).json({ msg: "El cliente destino no existe." });
+        }
+
+        // B. Ejecutar lógica de servicio
+        const updatedUser = await dbTransferOperationalUser(
+            id,
+            newClientId,
+            reason,
+            previousStartDate
         );
 
-        // B. CREAR EL NUEVO CONTRATO
-        const [newContract] = await Contract.create([{
-            contractContent,
-            contractValue,
-            contractTermMonths,
-            startDate,
-            endDate,
-            isActive: true
-        }], { session });
+        if (!updatedUser) {
+            return res.status(404).json({ msg: "Usuario operativo no encontrado." });
+        }
 
-        // C. MOVER EL VIEJO AL HISTORIAL
-        operational.historialContratos.push({
-            contract: operational.contractActual, // El ID del viejo
-            observaciones: `Renovación realizada el ${new Date().toLocaleDateString()}`
+        res.json({
+            msg: "Traslado exitoso (Historial actualizado).",
+            data: {
+                worker: updatedUser._id,
+                newClient: clientExists.companyName,
+                historyCount: updatedUser.clientHistory.length
+            }
         });
 
-        // D. ASIGNAR EL NUEVO COMO ACTUAL
-        operational.contractActual = newContract._id;
-
-        await operational.save({ session });
-        await session.commitTransaction();
-
-        return res.status(200).json({ message: "Contrato renovado exitosamente", newContractId: newContract._id });
-
     } catch (error) {
-        await session.abortTransaction();
-        return res.status(500).json({ message: "Error renovando contrato", error: error.message });
-    } finally {
-        session.endSession();
+        console.error(error);
+        res.status(500).json({ msg: "Error al realizar el traslado", error: error.message });
     }
 };
 
-
 // =====================================================================
-// 3. ACTUALIZACIÓN DE PARAFISCALES (Cambio de EPS/Fondo)
+// 2. CONTRACT RENEWAL (Renovación de Contrato)
 // =====================================================================
-export const updateParafiscales = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+const renewContract = async (req, res) => {
     try {
         const { id } = req.params;
-        const {
-            arl, arlRisk, eps, compensationFund, pensionsAndSeverance, cesantias, seguroVida, motivoCambio
-        } = req.body;
+        const contractData = req.body; // { contractValue, startDate, endDate... }
 
-        const operational = await OperationalUser.findById(id).session(session);
-        if (!operational) throw new Error("Empleado no encontrado");
+        const updatedUser = await dbRenewOperationalContract(id, contractData);
 
-        // A. CREAR EL NUEVO REGISTRO DE PARAFISCALES
-        // (Creamos uno nuevo completo para mantener la foto exacta de cómo está asegurado hoy)
-        const [newParafiscales] = await Parafiscales.create([{
-            arl, arlRisk, eps, compensationFund, pensionsAndSeverance, cesantias, seguroVida
-        }], { session });
+        if (!updatedUser) {
+            return res.status(404).json({ msg: "Usuario operativo no encontrado" });
+        }
 
-        // B. MOVER EL VIEJO AL HISTORIAL
-        operational.historialParafiscales.push({
-            parafiscales: operational.parafiscalesActuales, // ID del viejo
-            fechaCambio: new Date(),
-            motivoCambio: motivoCambio || "Actualización de datos"
+        res.json({
+            msg: "Contrato renovado exitosamente.",
+            currentContractId: updatedUser.currentContract
         });
-
-        // C. ASIGNAR EL NUEVO COMO ACTUAL
-        operational.parafiscalesActuales = newParafiscales._id;
-
-        await operational.save({ session });
-        await session.commitTransaction();
-
-        return res.status(200).json({ message: "Seguridad social actualizada", data: newParafiscales });
-
     } catch (error) {
-        await session.abortTransaction();
-        return res.status(500).json({ message: "Error actualizando parafiscales", error: error.message });
-    } finally {
-        session.endSession();
+        console.error(error);
+        res.status(500).json({ msg: "Error al renovar contrato", error: error.message });
     }
+};
+
+// =====================================================================
+// 3. SOCIAL SECURITY UPDATE (Actualización Parafiscales)
+// =====================================================================
+const updateSocialSecurity = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { changeReason, ...ssData } = req.body;
+
+        const updatedUser = await dbUpdateOperationalSocialSecurity(id, ssData, changeReason);
+
+        if (!updatedUser) {
+            return res.status(404).json({ msg: "Usuario operativo no encontrado" });
+        }
+
+        res.json({
+            msg: "Seguridad Social actualizada y archivada.",
+            currentSSId: updatedUser.currentSocialSecurity
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al actualizar seguridad social", error: error.message });
+    }
+};
+
+// =====================================================================
+// EXPORTS
+// =====================================================================
+export {
+    transferOperationalUser,
+    renewContract,
+    updateSocialSecurity
 };

@@ -11,7 +11,7 @@ const Schema = mongoose.Schema;
 const OperationalUserSchema = new Schema({
 
     // 1. Vinculación de Identidad (Inmutable)
-    // ----------------------------------------------------------------
+    // ---------------------------------------------------------------
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User',
@@ -20,66 +20,62 @@ const OperationalUserSchema = new Schema({
         index: true
     },
 
-
     // 2. Historial Laboral: UBICACIÓN (Cliente)
     // ----------------------------------------------------------------
     // Dónde está HOY (Acceso rápido para el dashboard)
-    clienteActual: {
+    currentClient: { // Antes: clienteActual
         type: Schema.Types.ObjectId,
         ref: 'Client',
         required: true
     },
     // Dónde estuvo ANTES (Trazabilidad de rotación)
-    historialClientes: [{
-        cliente: {
+    clientHistory: [{ // Antes: historialClientes
+        client: {
             type: Schema.Types.ObjectId,
             ref: 'Client',
             required: true
         },
-        fechaInicio: { type: Date, required: true },
-        fechaFin: { type: Date, required: true }, // Cuándo lo movieron
-        motivoCambio: { type: String } // Ej: "Rotación", "Solicitud Cliente", "Castigo"
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        changeReason: { type: String } // Antes: motivoCambio
     }],
-
 
     // 3. Historial Laboral: CONTRATOS (Renovaciones)
     // ----------------------------------------------------------------
     // Contrato VIGENTE (Para nómina actual)
-    contractActual: {
+    currentContract: { // Antes: contractActual
         type: Schema.Types.ObjectId,
         ref: 'Contract',
         required: true
     },
     // Contratos ANTERIORES (Archivo muerto)
-    historialContratos: [{
+    contractHistory: [{ // Antes: historialContratos
         contract: {
             type: Schema.Types.ObjectId,
-            ref: 'Contract', // Referencia al documento de contrato viejo
+            ref: 'Contract',
             required: true
         },
-        observaciones: String // Ej: "Terminado por tiempo cumplido"
+        observations: String
     }],
-
 
     // 4. Historial Laboral: SEGURIDAD SOCIAL (Parafiscales)
     // ----------------------------------------------------------------
-    // Afiliaciones VIGENTES
-    parafiscalesActuales: {
+    // Afiliaciones VIGENTES (Para nómina actual)
+    currentSocialSecurity: { // Antes: parafiscalesActuales
         type: Schema.Types.ObjectId,
-        ref: 'Parafiscales',
+        ref: 'SocialSecurity', // Antes: Parafiscales
         required: true
     },
-    // Afiliaciones PASADAS (Si se cambió de EPS o Fondo)
-    historialParafiscales: [{
-        parafiscales: {
+    // Afiliaciones ANTERIORES (Archivo muerto)
+    socialSecurityHistory: [{ // Antes: historialParafiscales
+        socialSecurity: {
             type: Schema.Types.ObjectId,
-            ref: 'Parafiscales',
+            ref: 'SocialSecurity', // Antes: Parafiscales
             required: true
         },
-        fechaCambio: { type: Date, default: Date.now },
-        motivoCambio: { type: String } // Ej: "Traslado voluntario de EPS"
+        changeDate: { type: Date, default: Date.now },
+        changeReason: { type: String } // Ej: "Renovación", "Cambio de cliente", etc.
     }],
-
 
     // 5. DOCUMENTACIÓN (Cursos, Diplomas, Soportes)
     // ----------------------------------------------------------------
@@ -91,91 +87,94 @@ const OperationalUserSchema = new Schema({
         ref: 'Document'
     }],
 
-
     // 6. Registro de Tiempos (Ingresos y Retiros de la Empresa)
     // ----------------------------------------------------------------
     // Esto es para saber si el empleado se fue de la empresa y volvió a los 2 años.
-    vinculacionesEmpresa: [{
-        fechaIngreso: { type: Date, required: true },
-        fechaRetiro: { type: Date, required: false }, // Null si está activo
-        motivoRetiro: { type: String }
+    employmentHistory: [{ // Antes: vinculacionesEmpresa
+        entryDate: { type: Date, required: true }, // Antes: fechaIngreso
+        exitDate: { type: Date, required: false }, // Antes: fechaRetiro
+        exitReason: { type: String } // Antes: motivoRetiro
     }],
-
 
     // 7. Datos Personales y Demográficos (Generalmente estáticos o editables directamente)
     // ----------------------------------------------------------------
-    fechaNacimiento: { type: Date, required: true },
-    lugarNacimiento: { type: String, required: true, trim: true },
-    fechaExpedicion: { type: Date, required: true },
-    lugarExpedicion: { type: String, required: true, trim: true },
-    nacionalidad: { type: String, required: true, trim: true },
-    sexo: { type: String, enum: ['Mujer', 'Hombre'], required: true },
-    estadoCivil: {
+    birthDate: { type: Date, required: true }, // Antes: fechaNacimiento
+    birthPlace: { type: String, required: true, trim: true },
+    issueDate: { type: Date, required: true }, // Antes: fechaExpedicion (Cedula)
+    issuePlace: { type: String, required: true, trim: true },
+    nationality: { type: String, required: true, trim: true },
+
+    gender: { // Sexo
         type: String,
-        enum: ['Soltero', 'Casado', 'Union Libre', 'Divorciado', 'Viudo'],
+        enum: ['Mujer', 'Hombre'], // Antes: Mujer, Hombre
+        required: true
+    },
+    maritalStatus: { // Estado Civil
+        type: String,
+        enum: ['Soltero', 'Casado', 'Union Libre', 'Divorciado', 'Viudo'], // Antes: Soltero, Casado...
         required: true
     },
 
-    // Físicos
-    estatura: { type: Number, required: true },
-    peso: { type: Number, required: true },
-    foto: {
+    // Estadísticas Físicas
+    height: { type: Number, required: true }, // Antes: estatura
+    weight: { type: Number, required: true }, // Antes: peso
+    photo: {
         type: String,
         required: false,
         default: 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png'
     },
 
-    // Residencia y Contacto
-    direccionResidencia: { type: String, required: true, trim: true },
-    barrioResidencia: { type: String, required: true, trim: true },
-    tipoResidencia: {
+    // Domicilio y Contacto
+    address: { type: String, required: true, trim: true }, // Antes: direccionResidencia
+    neighborhood: { type: String, required: true, trim: true }, // Antes: barrioResidencia
+    housingType: { // Antes: tipoResidencia
         type: String,
-        enum: ['Propia', 'Familiar', 'Arriendo', 'Otra'],
+        enum: ['Propio', 'Familiar', 'Alquilado', 'Otro'],
         required: true
     },
-    celulares: [{ type: String, required: true, trim: true }],
+    phones: [{ type: String, required: true, trim: true }], // Antes: celulares
 
-    // Acudiente
-    acudiente: { type: String, required: true, trim: true },
-    acudienteTelefono: { type: String, required: true, trim: true },
-    acudienteParentesco: { type: String, required: true, trim: true },
+    // Contacto de emergencia
+    emergencyContact: { type: String, required: true, trim: true }, // Antes: acudiente
+    emergencyContactPhone: { type: String, required: true, trim: true },
+    emergencyContactRelationship: { type: String, required: true, trim: true },
 
-    // Información Adicional
-    tieneVehiculo: { type: Boolean, required: true },
-    tipoVehiculo: { type: String, enum: ['Vehiculo', 'Moto', 'Bicicleta', 'Ninguno'], required: false },
-    licenciaConduccion: { type: Boolean, required: true },
-    categoriaLicencia: { type: String, enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'N/A'], required: false },
+    // Información adicional
+    hasVehicle: { type: Boolean, required: true }, // Antes: tieneVehiculo
+    vehicleType: { type: String, enum: ['Carro', 'Moto', 'Bicicleta', 'Ninguno'], required: false },
+    driversLicense: { type: Boolean, required: true }, // Antes: licenciaConduccion
+    licenseCategory: { type: String, enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'N/A'], required: false },
 
-    // Grupo Familiar
-    grupoFamiliar: [{
-        nombre: { type: String, required: true },
+    // Grupo familiar
+    familyGroup: [{ // Antes: grupoFamiliar
+        name: { type: String, required: true },
         nuip: { type: String, required: true },
-        parentesco: { type: String, enum: ['Conyuge', 'Hijo', 'Hija', 'Padre', 'Madre', 'Hermano', 'Hermana'], required: true },
-        actividad: { type: String, required: true },
-        fechaNacimiento: { type: Date, required: true },
-        dependeEconomicamente: { type: Boolean, required: true },
-        beneficiarioSalud: { type: Boolean, required: true },
-        discapacidad: { type: Boolean, required: true }
+        relationship: { type: String, enum: ['Conyuge', 'Hijo', 'Hija', 'Padre', 'Madre', 'Hermano', 'Hermana'], required: true },
+        occupation: { type: String, required: true }, // Antes: actividad
+        birthDate: { type: Date, required: true },
+        economicDependence: { type: Boolean, required: true }, // Antes: dependeEconomicamente
+        healthBeneficiary: { type: Boolean, required: true }, // Antes: beneficiarioSalud
+        disability: { type: Boolean, required: true }
     }],
 
-    // Académico
-    infoAcademica: [{
-        tipo: { type: String, required: true },
-        institucion: { type: String, required: true },
-        ciudad: { type: String, required: true },
-        titulo: { type: String, required: true },
-        fechaInicio: { type: Date, required: true },
-        fechaFin: { type: Date, required: true },
-        culmino: { type: Boolean, required: true }
+    // Información académica
+    academicInfo: [{ // Antes: infoAcademica
+        type: { type: String, required: true }, // Primaria, Bachiller, Tecnico...
+        institution: { type: String, required: true },
+        city: { type: String, required: true },
+        degree: { type: String, required: true }, // Antes: titulo
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        completed: { type: Boolean, required: true } // Antes: culmino
     }],
 
     // Idiomas
-    idioma: [{
-        idioma: { type: String, required: true },
-        institucion: { type: String, required: true },
-        habla: { type: Boolean, default: false },
-        lee: { type: Boolean, default: false },
-        escribe: { type: Boolean, default: false }
+    languages: [{ // Antes: idioma
+        language: { type: String, required: true },
+        institution: { type: String, required: true },
+        speaks: { type: Boolean, default: false }, // Antes: habla
+        reads: { type: Boolean, default: false }, // Antes: lee
+        writes: { type: Boolean, default: false }  // Antes: escribe
     }]
 
 }, {

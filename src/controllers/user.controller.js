@@ -19,6 +19,9 @@ import {
     dbDeleteUserById, dbDeleteOperationalUserById, dbDeleteAdministrativeUserById, dbDeleteClientManagerUserById
 } from "../services/user.service.js";
 
+// 1. IMPORTACIÓN NUEVA: Traemos el controlador especializado de operativos
+import { createOperationalUser } from "./userOperational.controller.js";
+
 // =====================================================================
 // 1. CREACIÓN DE USUARIOS (LOGICA MAESTRA)
 // =====================================================================
@@ -49,14 +52,15 @@ const createUser = async (req, res) => {
                 result = await createClientManagerProfile(inputData);
                 break;
 
-            // CASO C: OPERATIVO (El "Monstruo" - Requiere Transacción Compleja)
+            // CASO C: OPERATIVO (El "Monstruo")
             case 'operational':
-                // NOTA: La lógica del operativo es tan grande (4 colecciones) 
-                // que es mejor tenerla en su propio controlador dedicado.
-                // Aquí podrías llamar a esa función importada o devolver un aviso.
-                return res.status(400).json({
-                    msg: "Por favor use el endpoint específico '/api/operational/create' para crear operativos."
-                });
+                // -----------------------------------------------------------
+                // CAMBIO CLAVE: DELEGACIÓN DE CONTROL
+                // -----------------------------------------------------------
+                // Llamamos directamente a la función del otro archivo.
+                // Le pasamos (req, res) para que él maneje la transacción y la respuesta.
+                // Usamos 'return' para salirnos de esta función inmediatamente.
+                return await createOperationalUser(req, res);
 
             // CASO D: REGISTRADO SIMPLE (Solo Usuario Base)
             case 'registered':
@@ -125,15 +129,17 @@ async function createClientManagerProfile(data) {
         status: 'active'
     });
 
-    // 2. Crear Perfil Manager vinculado
+    // 2. Crear Perfil Manager vinculado (ACTUALIZADO A INGLÉS)
     const managerProfile = await dbRegisterClientManagerUser({
-        user: userBase._id, // ¡Aquí está la magia de la referencia!
-        fechaNacimiento: data.fechaNacimiento,
-        lugarNacimiento: data.lugarNacimiento,
-        fechaExpedicion: data.fechaExpedicion,
-        lugarExpedicion: data.lugarExpedicion,
-        nacionalidad: data.nacionalidad,
-        celulares: data.celulares,
+        user: userBase._id,
+
+        // Mapeo de campos nuevos
+        birthDate: data.birthDate,       // Antes: data.fechaNacimiento
+        birthPlace: data.birthPlace,     // Antes: data.lugarNacimiento
+        issueDate: data.issueDate,       // Antes: data.fechaExpedicion
+        issuePlace: data.issuePlace,     // Antes: data.lugarExpedicion
+        nationality: data.nationality,   // Antes: data.nacionalidad
+        phones: data.phones,             // Antes: data.celulares
         address: data.address
     });
 
