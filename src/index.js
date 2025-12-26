@@ -1,12 +1,16 @@
+import 'dotenv/config';
 import express from "express";         // Import the express module
 import dbConnection from "./config/mongo.config.js";
 
+import authRoute from "./routes/auth.route.js"; // <--- 2. ¡FALTABA ESTE IMPORT!
 import usersRoute from "./routes/users/users.route.js";
 import documentsRoute from "./routes/documents.route.js";
 import clientsRoute from "./routes/clients.route.js";
 
 const app = express();                      // Create an instance of express 
-const PORT = 3000;
+
+const PORT = process.env.PORT || 3001;
+// const PORT = 3000;
 
 dbConnection();
 
@@ -21,6 +25,7 @@ app.get(`/health`, (req, res) => {
 //Middlewares express
 app.use(express.json()); //Middleware para parsear el body de la peticion JSON (Ejemplo matrix trinity helicopter)
 
+app.use(`/api/v1/auth`, authRoute);
 app.use(`/api/v1/users`, usersRoute);
 app.use(`/api/v1/documents`, documentsRoute);
 app.use(`/api/v1/clients`, clientsRoute);

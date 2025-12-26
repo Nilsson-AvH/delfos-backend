@@ -19,8 +19,9 @@ import {
     dbDeleteUserById, dbDeleteOperationalUserById, dbDeleteAdministrativeUserById, dbDeleteClientManagerUserById
 } from "../services/user.service.js";
 
-// 1. IMPORTACIÓN NUEVA: Traemos el controlador especializado de operativos
-import { createOperationalUser } from "./userOperational.controller.js";
+import { createOperationalUser } from "./userOperational.controller.js"; // Controlador especializado de operativos
+import { encryptPassword } from "../helpers/bcrypt.helper.js"; // Cifrado de contraseñas
+import User from "../models/users/User.model.js";
 
 // =====================================================================
 // 1. CREACIÓN DE USUARIOS (LOGICA MAESTRA)
@@ -29,6 +30,10 @@ const createUser = async (req, res) => {
     try {
         const inputData = req.body;
         const { role } = inputData; // Extraemos el rol para saber qué camino tomar
+
+        // --- CORRECCIÓN CRÍTICA: Definir requesterRole ---
+        // Extraemos quién hace la petición desde el token
+        const requesterRole = req.payload ? req.payload.role : null;
 
         // Validación básica
         if (!role) {
@@ -40,12 +45,22 @@ const createUser = async (req, res) => {
         // --- SEMÁFORO DE LÓGICA SEGÚN EL ROL ---
         switch (role) {
 
-            // CASO A: ADMINISTRATIVO (Requiere Usuario Base + Password)
-            case 'admin':
+            // CASO A: Administrativos
             case 'root':
+            case 'superadmin':
+            case 'admin':
             case 'auditor':
-                result = await createAdministrativeProfile(inputData);
-                break;
+                // --- LA EXCEPCIÓN DEL REY ---
+                // Si el que pide es 'root', lo dejamos pasar.
+                if (requesterRole === 'root') {
+                    result = await createAdministrativeProfile(inputData);
+                    break;
+                }
+
+                // Para cualquier otro mortal (incluso SuperAdmin), puerta cerrada.
+                return res.status(403).json({
+                    msg: "Acción no permitida. Solo el usuario ROOT puede crear administrativos manualmente."
+                });
 
             // CASO B: GESTOR CLIENTE (Requiere Usuario Base + Datos Manager)
             case 'clientManager':
@@ -107,10 +122,14 @@ async function createAdministrativeProfile(data) {
         status: 'active'
     });
 
+    // 2. Cifrar contraseña ANTES DE GUARDAR
+    if (!data.password) throw new Error("La contraseña es obligatoria para roles administrativos.");
+    const hashPassword = encryptPassword(data.password);
+
     // 2. Crear Perfil Administrativo vinculado
     const adminProfile = await dbRegisterAdministrativeUser({
         user: userBase._id, // ¡Aquí está la magia de la referencia!
-        password: data.password // Recuerda encriptar esto antes en producción
+        password: hashPassword // Usar el hash, no la contraseña original
     });
 
     return { user: userBase, profile: adminProfile };
@@ -156,11 +175,44 @@ async function createClientManagerProfile(data) {
 // =====================================================================
 const getAllUsers = async (req, res) => {
     try {
-        const users = await dbGetAllUsers();
-        res.json({ users });
+        const { role, status } = req.query; // Filtros que vienen en la URL
+        const requesterRole = req.payload.role; // Rol de quien pregunta (Root, Admin, etc.)
+
+        // 🔒 REGLA DE SEGURIDAD 1: PROTEGER LA LISTA DE ESPERA
+        // Si alguien pide ver los 'registered' (pendientes) o 'inactive', 
+        // verificamos que sea Root o SuperAdmin.
+        const sensitiveRoles = ['registered'];
+        const sensitiveStatus = ['inactive'];
+
+        // ¿Están intentando ver algo sensible?
+        const isQueryingSensitive = sensitiveRoles.includes(role) || sensitiveStatus.includes(status);
+
+        // ¿Tienen permiso para verlo? (Solo Root y SuperAdmin)
+        const canViewSensitive = ['root', 'superadmin'].includes(requesterRole);
+
+        if (isQueryingSensitive && !canViewSensitive) {
+            return res.status(403).json({
+                msg: "Acceso denegado: Solo SuperAdmin y Root pueden ver usuarios pendientes de aprobación."
+            });
+        }
+
+        // --- Armar el filtro para Mongoose ---
+        const query = {};
+        if (role) query.role = role;
+        if (status) query.status = status;
+
+        // Si es Admin/Auditor y NO especificó filtros, por seguridad NO mostrarles los registered/inactive
+        if (!canViewSensitive) {
+            // Forzamos a que NO salgan los del limbo
+            query.role = { $ne: 'registered' };
+            query.status = { $ne: 'inactive' };
+        }
+
+        const users = await User.find(query);
+        res.json(users);
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: `Error al obtener los usuarios` });
+        res.status(500).json({ msg: "Error al obtener usuarios", error });
     }
 };
 
@@ -170,26 +222,45 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
     try {
         const { idUser } = req.params;
+        const requesterRole = req.payload.role; // <--- 1. ¿Quién pregunta?
 
-        // 1. Buscar el Usuario Base (Identidad)
-        // Usamos .lean() para obtener un objeto JS plano (más rápido y limpio)
-        const userFound = await dbGetUserById(idUser);//.lean();
+        // 2. Buscar el Usuario Base
+        const userFound = await dbGetUserById(idUser);
 
         if (!userFound) {
             return res.status(404).json({ msg: "Usuario no encontrado" });
         }
 
+        // 🔒 REGLA DE SEGURIDAD 3: PROTECCIÓN DE PERFILES SENSIBLES
+        // Definimos qué se considera "Confidencial"
+        const isTargetSensitive =
+            userFound.role === 'registered' ||
+            userFound.status === 'inactive';
+
+        // Definimos quién tiene "Nivel de Acceso Alto"
+        const hasHighPrivilege = ['root', 'superadmin'].includes(requesterRole);
+
+        // Si el perfil es sensible Y quien pregunta NO es SuperAdmin/Root...
+        if (isTargetSensitive && !hasHighPrivilege) {
+            // ... Le mentimos y decimos que no existe (o 403 Forbidden)
+            // Es mejor 403 para que sepa que no tiene permiso, 
+            // o 404 si quieres ocultar la existencia del usuario totalmente.
+            return res.status(403).json({
+                msg: "Acceso denegado: No tiene permisos para ver usuarios pendientes o inactivos."
+            });
+        }
+
         let profileData = null;
 
-        // 2. Buscar el Perfil Específico según el ROL
+        // 3. Buscar el Perfil Específico según el ROL (Tu lógica original)
         switch (userFound.role) {
             case 'operational':
-                // Aquí ocurre la magia del .populate() que definimos en el servicio
                 profileData = await dbGetOperationalProfileByUserId(idUser);
                 break;
 
             case 'admin':
             case 'root':
+            case 'superadmin': // <--- Agregamos superadmin aquí también por si acaso
             case 'auditor':
                 profileData = await dbGetAdministrativeProfileByUserId(idUser);
                 break;
@@ -199,15 +270,13 @@ const getUserById = async (req, res) => {
                 break;
 
             default:
-                // Si es 'registered' o un rol sin perfil extra, no hacemos nada
                 break;
         }
 
-        // 3. Responder con la información unificada
         res.json({
             msg: "Usuario encontrado",
-            user: userFound,      // Datos de identidad (Nombre, Email, Rol)
-            profile: profileData  // Datos extendidos (Contrato, EPS, Celulares, etc.)
+            user: userFound,
+            profile: profileData
         });
 
     } catch (error) {
@@ -239,17 +308,38 @@ const deleteUserById = async (req, res) => {
 // =====================================================================
 const updateUserById = async (req, res) => {
     try {
-        const inputData = req.body;
         const { idUser } = req.params;
-        const userUpdated = await dbUpdateUserById(idUser, inputData);
+        const updateData = req.body;
+        const requesterRole = req.payload.role;
 
-        if (!userUpdated) {
-            return res.status(404).json({ msg: "Usuario no encontrado para actualizar" });
+        // 🔒 REGLA DE SEGURIDAD 2: PROTEGER CAMBIOS CRÍTICOS (Ascensos/Aprobaciones)
+        // Campos delicados que solo la gerencia puede tocar
+        const restrictedFields = ['role', 'status'];
+
+        // Verificamos si el body intenta tocar alguno de esos campos
+        const isTouchingRestricted = Object.keys(updateData).some(field => restrictedFields.includes(field));
+
+        // ¿Quién tiene permiso de tocar eso? Solo Root y SuperAdmin
+        const hasHighPrivilege = ['root', 'superadmin'].includes(requesterRole);
+
+        if (isTouchingRestricted && !hasHighPrivilege) {
+            return res.status(403).json({
+                msg: "Acceso denegado: No tiene permisos para cambiar el Rol o Estatus de un usuario. Solo cambios de datos básicos permitidos."
+            });
         }
-        res.json({ userUpdated });
+
+        // --- Ejecutar la actualización ---
+        // { new: true } devuelve el usuario ya cambiado
+        const updatedUser = await User.findByIdAndUpdate(idUser, updateData, { new: true });
+
+        if (!updatedUser) {
+            return res.status(404).json({ msg: "Usuario no encontrado" });
+        }
+
+        res.json({ msg: "Usuario actualizado", user: updatedUser });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: `Error al actualizar el usuario` });
+        res.status(500).json({ msg: "Error al actualizar usuario", error });
     }
 };
 

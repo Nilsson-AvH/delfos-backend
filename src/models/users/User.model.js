@@ -55,21 +55,27 @@ const UserSchema = new Schema({
         default: "registered",
         // Definición estricta de roles permitidos en el sistema
         enum: [
-            'root',
-            'admin',
-            'auditor',
-            'registered',
-            'client',
-            'operational',
-            'clientManager' // Corregido a camelCase para consistencia
+            'root',         // Dios (Devs) Permisos totales: Aprobar Usuarios, post, get, patch, delete
+            'superadmin',   // Gerente Empresa Permisos: Aprobar Usuarios, post, get, patch 
+            'admin',        // Admin general Permisos: post, get, patch
+            'auditor',      // Auditor Permisos: get
+            'registered',   // El "Limbo" (Recién registrado esperando aprobación) Permisos: none
+            'client',       // Cliente Permisos: none
+            'operational',  // Operativo Permisos: none
+            'clientManager' // Admin de cliente Permisos: none
         ]
+    },
+
+    requestedRole: {
+        type: String,
+        required: false // Es opcional (un operativo creado a mano no pide nada)
     },
 
     status: {
         type: String,
         required: true,
         enum: ['active', 'inactive', 'suspended'],
-        default: 'active'
+        default: 'inactive' // Por defecto nacen inactivos si es registro público
     }
 
 }, {
