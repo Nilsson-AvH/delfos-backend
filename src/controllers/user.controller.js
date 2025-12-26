@@ -259,7 +259,7 @@ const deleteUserById = async (req, res) => {
         // 🔒 1. VALIDACIÓN DE SEGURIDAD
         if (requesterRole !== 'root') {
             return res.status(403).json({
-                msg: "Acceso denegado. Solo el usuario ROOT puede eliminar registros."
+                msg: "Acceso denegado. No tiene permisos de eliminación. Contacte a Soporte."
             });
         }
 
