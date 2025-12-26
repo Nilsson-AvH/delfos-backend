@@ -171,88 +171,54 @@ async function createClientManagerProfile(data) {
 // =====================================================================
 
 // =====================================================================
-// CONSULTAR TODOS LOS USUARIOS
+// CONSULTAR TODOS LOS USUARIOS (ACTUALIZADO CON VISIBILIDAD)
 // =====================================================================
 const getAllUsers = async (req, res) => {
     try {
-        const { role, status } = req.query; // Filtros que vienen en la URL
-        const requesterRole = req.payload.role; // Rol de quien pregunta (Root, Admin, etc.)
+        const { role, status } = req.query;
+        const requesterRole = req.payload.role; // Rol de quien pregunta
 
-        // 🔒 REGLA DE SEGURIDAD 1: PROTEGER LA LISTA DE ESPERA
-        // Si alguien pide ver los 'registered' (pendientes) o 'inactive', 
-        // verificamos que sea Root o SuperAdmin.
-        const sensitiveRoles = ['registered'];
-        const sensitiveStatus = ['inactive'];
-
-        // ¿Están intentando ver algo sensible?
-        const isQueryingSensitive = sensitiveRoles.includes(role) || sensitiveStatus.includes(status);
-
-        // ¿Tienen permiso para verlo? (Solo Root y SuperAdmin)
-        const canViewSensitive = ['root', 'superadmin'].includes(requesterRole);
-
-        if (isQueryingSensitive && !canViewSensitive) {
-            return res.status(403).json({
-                msg: "Acceso denegado: Solo SuperAdmin y Root pueden ver usuarios pendientes de aprobación."
-            });
-        }
-
-        // --- Armar el filtro para Mongoose ---
+        // --- Armar el filtro básico ---
         const query = {};
         if (role) query.role = role;
         if (status) query.status = status;
 
-        // Si es Admin/Auditor y NO especificó filtros, por seguridad NO mostrarles los registered/inactive
-        if (!canViewSensitive) {
-            // Forzamos a que NO salgan los del limbo
-            query.role = { $ne: 'registered' };
-            query.status = { $ne: 'inactive' };
-        }
+        // NOTA: Ya no necesitamos tanta lógica manual de "if sensitiveRoles" 
+        // porque el servicio (dbGetAllUsers) va a filtrar automáticamente 
+        // lo que este rol no puede ver gracias al helper.
 
-        const users = await User.find(query);
+        // Llamamos al servicio pasando los filtros Y el rol del solicitante
+        const users = await dbGetAllUsers(query, requesterRole);
+
         res.json(users);
 
     } catch (error) {
+        console.error(error);
         res.status(500).json({ msg: "Error al obtener usuarios", error });
     }
 };
 
 // =====================================================================
-// CONSULTAR USUARIO POR ID (CON PERFIL COMPLETO)
+// CONSULTAR USUARIO POR ID (ACTUALIZADO CON VISIBILIDAD)
 // =====================================================================
 const getUserById = async (req, res) => {
     try {
         const { idUser } = req.params;
-        const requesterRole = req.payload.role; // <--- 1. ¿Quién pregunta?
+        const requesterRole = req.payload.role;
 
-        // 2. Buscar el Usuario Base
-        const userFound = await dbGetUserById(idUser);
+        // 1. Buscar el Usuario Base usando el SERVICIO SEGURO
+        // (Le pasamos el requesterRole para que aplique el filtro)
+        const userFound = await dbGetUserById(idUser, requesterRole);
 
+        // Si el servicio devuelve null, puede ser que no exista 
+        // O que el usuario no tenga permiso para verlo.
         if (!userFound) {
-            return res.status(404).json({ msg: "Usuario no encontrado" });
-        }
-
-        // 🔒 REGLA DE SEGURIDAD 3: PROTECCIÓN DE PERFILES SENSIBLES
-        // Definimos qué se considera "Confidencial"
-        const isTargetSensitive =
-            userFound.role === 'registered' ||
-            userFound.status === 'inactive';
-
-        // Definimos quién tiene "Nivel de Acceso Alto"
-        const hasHighPrivilege = ['root', 'superadmin'].includes(requesterRole);
-
-        // Si el perfil es sensible Y quien pregunta NO es SuperAdmin/Root...
-        if (isTargetSensitive && !hasHighPrivilege) {
-            // ... Le mentimos y decimos que no existe (o 403 Forbidden)
-            // Es mejor 403 para que sepa que no tiene permiso, 
-            // o 404 si quieres ocultar la existencia del usuario totalmente.
-            return res.status(403).json({
-                msg: "Acceso denegado: No tiene permisos para ver usuarios pendientes o inactivos."
-            });
+            return res.status(404).json({ msg: "Usuario no encontrado o no disponible." });
         }
 
         let profileData = null;
 
-        // 3. Buscar el Perfil Específico según el ROL (Tu lógica original)
+        // 2. Buscar el Perfil Específico (Esto se mantiene igual)
         switch (userFound.role) {
             case 'operational':
                 profileData = await dbGetOperationalProfileByUserId(idUser);
@@ -260,16 +226,13 @@ const getUserById = async (req, res) => {
 
             case 'admin':
             case 'root':
-            case 'superadmin': // <--- Agregamos superadmin aquí también por si acaso
+            case 'superadmin':
             case 'auditor':
                 profileData = await dbGetAdministrativeProfileByUserId(idUser);
                 break;
 
             case 'clientManager':
                 profileData = await dbGetClientManagerProfileByUserId(idUser);
-                break;
-
-            default:
                 break;
         }
 
@@ -291,12 +254,24 @@ const getUserById = async (req, res) => {
 const deleteUserById = async (req, res) => {
     try {
         const { idUser } = req.params;
+        const requesterRole = req.payload.role;
+
+        // 🔒 1. VALIDACIÓN DE SEGURIDAD
+        if (requesterRole !== 'root') {
+            return res.status(403).json({
+                msg: "Acceso denegado. Solo el usuario ROOT puede eliminar registros."
+            });
+        }
+
+        // 💣 2. EJECUCIÓN
         const userDeleted = await dbDeleteUserById(idUser);
 
         if (!userDeleted) {
             return res.status(404).json({ msg: "Usuario no encontrado para eliminar" });
         }
-        res.json({ msg: "Usuario eliminado", userDeleted });
+
+        res.json({ msg: "Usuario eliminado correctamente", userDeleted });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ msg: `Error al eliminar el usuario` });
@@ -304,41 +279,41 @@ const deleteUserById = async (req, res) => {
 };
 
 // =====================================================================
-// ACTUALIZAR USUARIO POR ID
+// ACTUALIZAR USUARIO POR ID (CON JERARQUÍA)
 // =====================================================================
 const updateUserById = async (req, res) => {
     try {
         const { idUser } = req.params;
         const updateData = req.body;
-        const requesterRole = req.payload.role;
+        const requesterRole = req.payload.role; // Quién hace el cambio
 
-        // 🔒 REGLA DE SEGURIDAD 2: PROTEGER CAMBIOS CRÍTICOS (Ascensos/Aprobaciones)
-        // Campos delicados que solo la gerencia puede tocar
+        // 🔒 SEGURIDAD NIVEL 1: ¿Qué campos quieren tocar?
+        // (Esta lógica la tenías y es excelente, la mantenemos)
         const restrictedFields = ['role', 'status'];
-
-        // Verificamos si el body intenta tocar alguno de esos campos
         const isTouchingRestricted = Object.keys(updateData).some(field => restrictedFields.includes(field));
-
-        // ¿Quién tiene permiso de tocar eso? Solo Root y SuperAdmin
         const hasHighPrivilege = ['root', 'superadmin'].includes(requesterRole);
 
         if (isTouchingRestricted && !hasHighPrivilege) {
             return res.status(403).json({
-                msg: "Acceso denegado: No tiene permisos para cambiar el Rol o Estatus de un usuario. Solo cambios de datos básicos permitidos."
+                msg: "Acceso denegado: No tiene permisos para cambiar el Rol o Estatus. Solo cambios básicos permitidos."
             });
         }
 
-        // --- Ejecutar la actualización ---
-        // { new: true } devuelve el usuario ya cambiado
-        const updatedUser = await User.findByIdAndUpdate(idUser, updateData, { new: true });
+        // 🔒 SEGURIDAD NIVEL 2: ¿A QUIÉN quieren tocar? (Jerarquía)
+        // Pasamos el requesterRole para que el servicio aplique el filtro de visibilidad.
+        const updatedUser = await dbUpdateUserById(idUser, updateData, requesterRole);
 
         if (!updatedUser) {
-            return res.status(404).json({ msg: "Usuario no encontrado" });
+            // Si devuelve null es porque:
+            // 1. El usuario no existe.
+            // 2. O el usuario existe PERO tiene un rango superior al mío (es invisible para mí).
+            return res.status(404).json({ msg: "Usuario no encontrado o no autorizado para editar." });
         }
 
         res.json({ msg: "Usuario actualizado", user: updatedUser });
 
     } catch (error) {
+        console.error(error);
         res.status(500).json({ msg: "Error al actualizar usuario", error });
     }
 };

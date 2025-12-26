@@ -25,7 +25,7 @@ const register = async (req, res) => {
         });
 
         // 2. Cifrar contraseña usando tu helper
-        const hashPassword = await encryptPassword(password); // Asumo que tu helper puede ser asíncrono
+        const hashPassword = await encryptPassword(password); // Helper asíncrono?
 
         // 3. Crear Perfil Administrativo
         await AdministrativeUser.create({
@@ -36,7 +36,6 @@ const register = async (req, res) => {
         res.status(201).json({
             msg: "Registro exitoso. Su cuenta está 'Pendiente de Aprobación'.",
             user: newUser,
-            requestedRole: roleRequest
         });
 
     } catch (error) {
@@ -67,7 +66,13 @@ const loginUser = async (req, res) => {
         // 2. FILTRO DE SEGURIDAD (LISTA VIP) 🛡️
         // Aquí es donde un 'clientManager' o 'operational' existente será detenido.
         const allowedRoles = ['root', 'superadmin', 'admin', 'auditor'];
+        const pendingRoles = ['registered'];
 
+        if (pendingRoles.includes(userFound.role)) {
+            return res.status(403).json({
+                msg: "Acceso denegado. Su rol está pendiente de aprobación."
+            });
+        }
         if (!allowedRoles.includes(userFound.role)) {
             return res.status(403).json({
                 msg: "Acceso denegado. Su rol no tiene permisos para iniciar sesión en este sistema."

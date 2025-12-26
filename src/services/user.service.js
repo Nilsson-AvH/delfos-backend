@@ -10,6 +10,7 @@ import userModel from "../models/users/User.model.js";
 import operationalUser from "../models/users/UserOperational.model.js";
 import administrativeUser from "../models/users/UserAdministrative.model.js";
 import clientManagerUser from "../models/users/UserClientManager.model.js";
+import getExcludedRoles from "../helpers/visibility.helper.js";
 
 // =====================================================================
 // 1. CREACION DE USUARIOS
@@ -56,11 +57,23 @@ const dbRegisterClientManagerUser = async (newUser) => {
 // =====================================================================
 
 /**
- * Obtiene todos los usuarios base del sistema.
- * @returns {Array} Array de usuarios.
+ * Obtiene todos los usuarios base del sistema con FILTRO DE VISIBILIDAD.
+ * @param {Object} queryFilters - Filtros que vienen del controlador (status, role, etc).
+ * @param {string} requesterRole - El rol de quien hace la petición.
+ * @returns {Array} Array de usuarios filtrados.
  */
-const dbGetAllUsers = async () => {
-    return await userModel.find();
+const dbGetAllUsers = async (queryFilters = {}, requesterRole) => {
+    // 1. Obtenemos la lista negra
+    const excludedRoles = getExcludedRoles(requesterRole);
+
+    // 2. Construimos la query final
+    // Mantenemos los filtros que ya existían y agregamos la regla de seguridad ($nin)
+    const finalQuery = {
+        ...queryFilters,
+        role: { $nin: excludedRoles }
+    };
+
+    return await userModel.find(finalQuery);
 };
 
 /**
@@ -92,12 +105,20 @@ const dbGetAllClientManagerUsers = async () => {
 // =====================================================================
 
 /**
- * Obtiene un usuario base del sistema por su ID.
+ * Obtiene un usuario base por su ID respetando la VISIBILIDAD.
  * @param {string} _id - ID del usuario.
- * @returns {Object} Usuario encontrado.
+ * @param {string} requesterRole - Rol de quien pregunta.
+ * @returns {Object} Usuario encontrado o null si está oculto.
  */
-const dbGetUserById = async (_id) => {
-    return await userModel.findOne({ _id });
+const dbGetUserById = async (_id, requesterRole) => {
+    // 1. Obtenemos lista negra
+    const excludedRoles = getExcludedRoles(requesterRole);
+
+    // 2. Buscamos uno que coincida con el ID Y que NO tenga un rol prohibido
+    return await userModel.findOne({
+        _id: _id,
+        role: { $nin: excludedRoles }
+    });
 };
 
 /**
@@ -159,17 +180,29 @@ const dbGetClientManagerProfileByUserId = async (userId) => {
 };
 
 // =====================================================================
-// 4. ACTUALIZACIÓN DE DATOS - ACTUALIZAR POR ID (UPDATE BY ID)
+// 4. ACTUALIZACIÓN DE DATOS - ACTUALIZAR POR ID (CON VISIBILIDAD)
 // =====================================================================
 
 /**
- * Actualiza un usuario base por su ID.
+ * Actualiza un usuario base por su ID, respetando la jerarquía.
  * @param {String} _id - ID del usuario a modificar.
  * @param {Object} updatedData - Objeto con los campos a cambiar.
- * @returns {Promise} El documento YA actualizado.
+ * @param {String} requesterRole - Rol de quien intenta hacer el cambio.
+ * @returns {Promise} El documento YA actualizado o null si no tiene permiso.
  */
-const dbUpdateUserById = async (_id, updatedData) => {
-    return await userModel.findByIdAndUpdate(_id, updatedData, { new: true });
+const dbUpdateUserById = async (_id, updatedData, requesterRole) => {
+    // 1. Obtenemos la lista de intocables para este rol
+    const excludedRoles = getExcludedRoles(requesterRole);
+
+    // 2. Buscamos por ID **Y** que NO sea un rol prohibido
+    return await userModel.findOneAndUpdate(
+        {
+            _id: _id,
+            role: { $nin: excludedRoles } // <--- EL MURO DE SEGURIDAD
+        },
+        updatedData,
+        { new: true } // Para que devuelva el objeto nuevo
+    );
 };
 
 /**
