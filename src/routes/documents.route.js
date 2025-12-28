@@ -9,18 +9,21 @@ import {
 } from "../controllers/document.controller.js";
 import authenticationUser from "../middlewares/authentication.middleware.js";
 import authorizationUser from "../middlewares/authorization.middleware.js";
+// 1. IMPORTAR EL MIDDLEWARE DE LA NUBE CLOUDINARY ☁️
+import uploadCloud from "../config/cloudinary.config.js";
 
 const router = Router();
 
 // Rutas base: /api/v1/documents
 
-// Crear Documento
-router.post(`/`, [authenticationUser, authorizationUser], createDocument); //http://localhost:3000/api/v1/documents
+// 2. CLOUDINARY: INYECTARLO EN EL POST
+// 'file' es la llave que usaremos en Postman
+router.post(`/`, [authenticationUser, authorizationUser, uploadCloud.single('file')], createDocument); //http://localhost:3000/api/v1/documents
 
 // Listar Documentos
 router.get(`/`, [authenticationUser, authorizationUser], getAllDocuments); //http://localhost:3000/api/v1/documents
 
-// 2. RUTA IMPORTANTE: Obtener carpeta de un empleado especifico
+// 3. RUTA IMPORTANTE: Obtener carpeta de un empleado especifico
 // OJO: Esta ruta debe ir ANTES de `/:id` para que Express no confunda "user" con un ID.
 router.get(`/user/:userId`, [authenticationUser, authorizationUser], getDocumentsByUser); //http://localhost:3000/api/v1/documents/user/:userId
 
