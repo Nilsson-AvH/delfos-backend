@@ -244,10 +244,10 @@ const srvGenerateCertificate = async (userBase, adminId) => {
         companyName: "SEGURIDAD DELFOS LTDA",
         companyNit: "830.100.549-1",
 
-        employeeName: `${userBase.names} ${userBase.lastName}`.toUpperCase(),
+        employeeName: `${userBase.names} ${userBase.lastName} ${userBase.secondLastName}`.toUpperCase(),
         employeeId: userBase.nuip,
 
-        position: (contract.position || "Guarda de Seguridad").toUpperCase(), // Usamos el del contrato o fallback
+        position: (contract.contractContent || "Guarda de Seguridad").toUpperCase(), // Usamos el del contrato o fallback
 
         // Fecha de inicio: Idealmente usamos la fecha de ingreso histórica. 
         // Si no tenemos ese campo específico, usamos la del contrato actual como fallback.
