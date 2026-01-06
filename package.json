@@ -34,9 +34,14 @@
     "cloudinary": "^2.8.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "fs-extra": "^11.3.3",
+    "handlebars": "^4.7.8",
     "jsonwebtoken": "^9.0.3",
+    "moment": "^2.30.1",
     "mongoose": "^9.0.0",
     "multer": "^2.0.2",
-    "multer-storage-cloudinary": "^2.2.1"
+    "multer-storage-cloudinary": "^2.2.1",
+    "numero-a-letras": "^1.0.6",
+    "puppeteer": "^24.34.0"
   }
 }

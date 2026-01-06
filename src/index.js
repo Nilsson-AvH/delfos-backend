@@ -6,6 +6,8 @@ import authRoute from "./routes/auth.route.js"; // <--- 2. ¡FALTABA ESTE IMPORT
 import usersRoute from "./routes/users/users.route.js";
 import documentsRoute from "./routes/documents.route.js";
 import clientsRoute from "./routes/clients.route.js";
+import docGeneratorRoute from "./routes/docGenerator.routes.js";
+import companyDocumentsRoute from "./routes/companyDocuments.routes.js";
 
 const app = express();                      // Create an instance of express 
 
@@ -29,5 +31,7 @@ app.use(`/api/v1/auth`, authRoute);
 app.use(`/api/v1/users`, usersRoute);
 app.use(`/api/v1/documents`, documentsRoute);
 app.use(`/api/v1/clients`, clientsRoute);
+app.use(`/api/v1/generator`, docGeneratorRoute);
+app.use(`/api/v1/company-documents`, companyDocumentsRoute);
 
 app.listen(PORT, () => console.log(`:) :) Server running on http://localhost:${PORT}`));

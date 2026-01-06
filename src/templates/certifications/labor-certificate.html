@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Certificación Laboral</title>
+    <style>
+        /* 1. Definir la hoja sin márgenes */
+        @page {
+            size: Letter;
+            margin: 0mm;
+            /* CERO márgenes absolutos */
+        }
+
+        /* 2. Resetear HTML y BODY para que no tengan espacios */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 3. Estilos del cuerpo (texto) */
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12pt;
+            line-height: 2.0;
+            color: #000;
+            text-align: justify;
+            position: relative;
+            /* Padding para posicionar el texto sobre el membrete */
+            padding: 7.5cm 3cm 2cm 3cm;
+            /* IMPORTANTE: Esto hace que el padding no aumente el tamaño total de la hoja */
+            box-sizing: border-box;
+        }
+
+        /* 4. FONDO - "Modo Agresivo" borde a borde */
+        .letterhead-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            /* Usamos unidades de viewport para asegurar cobertura total */
+            width: 100vw;
+            height: 100vh;
+            z-index: -10;
+            display: block;
+            /* Asegura que no tenga espacios en línea */
+
+            /* TRUCO: Al quitar 'object-fit: cover', forzamos a la imagen a 
+               estirarse exactamente a las 4 esquinas, como hace Word. 
+               Si la notas muy deformada, vuelve a agregar: object-fit: cover; */
+            /* object-fit: cover; */
+        }
+
+        /* TÍTULO */
+        .title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16pt;
+            letter-spacing: 8px;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+            margin-top: 0px;
+        }
+
+        /* CONTENIDO */
+        .content {
+            margin-bottom: 40px;
+        }
+
+        .highlight {
+            font-weight: bold;
+        }
+
+        /* FECHA */
+        .footer-date {
+            margin-top: 60px;
+            text-align: justify;
+        }
+
+        /* FIRMA */
+        .signature-section {
+            margin-top: 120px;
+        }
+
+        .signature-line {
+            width: 250px;
+            border-top: 1px solid #000;
+            margin-bottom: 5px;
+        }
+
+        .signer-name {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11pt;
+        }
+
+        .signer-role {
+            font-style: italic;
+            font-size: 11pt;
+        }
+
+        .small-note {
+            text-align: center;
+            font-size: 7pt;
+            color: #888;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    {{#if letterheadImage}}
+    <img src="{{letterheadImage}}" alt="Membrete" class="letterhead-bg">
+    {{/if}}
+
+    <div class="title">CERTIFICACION</div>
+
+    <div class="content">
+        <p>
+            La empresa <span class="highlight">{{companyName}}</span> con NIT: {{companyNit}}, certifica que el(la)
+            señor(a)
+            <span class="highlight">{{employeeName}}</span> con C.C. <span class="highlight">{{employeeId}}</span>,
+            labora en nuestra compañía desempeñando el cargo de <span class="highlight">{{position}}</span>
+            desde el <span class="highlight">{{startDate}}</span>, devengando {{salaryDetails}}
+            con un contrato {{contractType}}.
+        </p>
+    </div>
+
+    <div class="footer-date">
+        <p>
+            La presente se expide a solicitud del interesado a los {{currentDateText}}.
+        </p>
+    </div>
+
+    <div class="signature-section">
+        <br><br>
+        <div class="signature-line"></div>
+        <div class="signer-name">{{signerName}}</div>
+        <div class="signer-role">{{signerRole}}</div>
+    </div>
+    <br>
+
+</body>
+
+</html>

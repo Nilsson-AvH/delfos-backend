@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Contrato Individual de Trabajo</title>
+    <style>
+        @page {
+            size: Letter;
+            /* Usamos Carta para ganar ancho respecto a A4 */
+            /* Márgenes reducidos a 1.5cm para ganar espacio vertical */
+            margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            /* FUENTE COMPACTA: 9pt es ideal para contratos largos */
+            font-size: 9pt;
+            /* INTERLINEADO AJUSTADO: 1.2 para que las líneas estén juntitas */
+            line-height: 1.2;
+            color: #000;
+            text-align: justify;
+        }
+
+        /* --- MARCA DE AGUA CENTRADA --- */
+        .watermark-center {
+            position: fixed;
+            /* Se repite en todas las páginas */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* Centrado matemático */
+            width: 50%;
+            /* Ajusta el tamaño del escudo según prefieras */
+            z-index: -100;
+            /* Detrás del texto */
+            /* SIN OPACIDAD: Como pediste, se muestra tal cual es el archivo */
+        }
+
+        /* TABLA DE DATOS COMPACTA */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            /* Menos margen abajo */
+            font-size: 8pt;
+            /* Letra un pelín más chica en la tabla */
+        }
+
+        .info-table td {
+            border: 1px solid #000;
+            padding: 3px;
+            /* Padding reducido (era 5px) */
+            vertical-align: top;
+        }
+
+        .label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 1px;
+            text-transform: uppercase;
+            font-size: 7pt;
+            color: #444;
+        }
+
+        .value {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .title-main {
+            text-align: center;
+            font-weight: bold;
+            font-size: 11pt;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* CLÁUSULAS APRETADAS */
+        .clause-title {
+            font-weight: bold;
+            margin-top: 8px;
+            /* Menos espacio antes del título */
+            text-transform: uppercase;
+            font-size: 9pt;
+        }
+
+        p {
+            margin: 4px 0;
+            /* Párrafos con menos aire */
+        }
+
+        ul,
+        ol {
+            margin: 2px 0 5px 20px;
+            padding-left: 0;
+        }
+
+        li {
+            margin-bottom: 2px;
+        }
+
+        /* --- TUS ESTILOS DE FIRMA (Preservados y Ajustados) --- */
+        .signatures-section {
+            margin-top: 30px;
+            /* Reducido de 50px a 30px para ahorrar espacio */
+            page-break-inside: avoid;
+            /* Intenta no romper las firmas */
+        }
+
+        .signature-row {
+            display: table;
+            width: 100%;
+            margin-top: 20px;
+            /* Reducido de 40px */
+        }
+
+        .sig-box {
+            display: table-cell;
+            width: 30%;
+            vertical-align: bottom;
+            padding-right: 10px;
+            font-size: 8pt;
+            /* Firma un poco más chica */
+        }
+
+        .fingerprint-cell {
+            width: 10%;
+            text-align: center;
+            vertical-align: bottom;
+            padding-right: 10px;
+        }
+
+        .line {
+            border-top: 1px solid #000;
+            margin-bottom: 3px;
+        }
+
+        .fingerprint-box {
+            border: 1px solid #ccc;
+            width: 50px;
+            /* Ligeramente más chico para ahorrar */
+            height: 70px;
+            margin: 0 auto 3px auto;
+        }
+
+        .small-note {
+            text-align: center;
+            font-size: 7pt;
+            color: #888;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    {{#if watermarkImage}}
+    <img src="{{watermarkImage}}" class="watermark-center">
+    {{/if}}
+
+    <div class="title-main">CONTRATO INDIVIDUAL DE TRABAJO A TÉRMINO FIJO</div>
+
+    <table class="info-table">
+        <tr>
+            <td width="50%">
+                <span class="label">Nombre del Empleador</span>
+                <span class="value">{{companyName}}</span>
+            </td>
+            <td width="50%">
+                <span class="label">Dirección del Empleador</span>
+                <span class="value">{{companyAddress}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="label">Nombre del Trabajador</span>
+                <span class="value">{{employeeName}}</span>
+            </td>
+            <td>
+                <span class="label">Dirección del Trabajador</span>
+                <span class="value">{{employeeAddress}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="label">Lugar, Fecha Nacimiento y Nacionalidad</span>
+                <span class="value">{{employeeBirthPlace}}, {{employeeBirthDate}}. {{employeeNationality}}</span>
+            </td>
+            <td>
+                <span class="label">Cédula de Ciudadanía y Sitio Expedición</span>
+                <span class="value">{{employeeId}} DE {{employeeIdExpedition}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span class="label">Salario</span>
+                <span class="value">$ {{salary}} ({{salaryInLetters}})</span>
+                <br>
+                <span style="font-size: 7pt;">Más auxilio de transporte y recargos de ley.</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="label">Periodo de Pago</span>
+                <span class="value">MENSUALIDADES VENCIDAS</span>
+            </td>
+            <td>
+                <span class="label">Fecha de Iniciación de Labores</span>
+                <span class="value">{{startDate}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="label">Lugar donde desempeñará labores</span>
+                <span class="value">{{workCity}}</span>
+            </td>
+            <td>
+                <span class="label">Cargo que desempeñará</span>
+                <span class="value">{{position}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="label">Término inicial del contrato</span>
+                <span class="value">{{contractDuration}}</span>
+            </td>
+            <td>
+                <span class="label">Fecha Vencimiento del Contrato</span>
+                <span class="value">{{endDate}}</span>
+            </td>
+        </tr>
+    </table>
+
+    <p>
+        Entre EL EMPLEADOR y EL TRABAJADOR, de las condiciones ya dichas, identificados como aparece al pie de sus
+        firmas, se ha celebrado el presente contrato individual de trabajo, regido además por las siguientes cláusulas:
+    </p>
+
+    <div class="clause-title">PRIMERA. OBJETO:</div>
+    <p>
+        EL EMPLEADOR contrata los servicios personales del TRABAJADOR y éste se obliga:
+        a) A poner al servicio del EMPLEADOR toda su capacidad normal de trabajo, en forma exclusiva en el desempeño de
+        las funciones propias del oficio mencionado y en las labores anexas y complementarias del mismo, de conformidad
+        con las órdenes e instrucciones que le imparta EL EMPLEADOR o sus representantes, y
+        b) A no prestar directa ni indirectamente servicios laborales a otros EMPLEADORES, ni a trabajar por cuenta
+        propia en el mismo oficio, durante la vigencia de este contrato.
+    </p>
+
+    <div class="clause-title">SEGUNDA. LEGALIDAD:</div>
+    <p>
+        Las partes declaran que en el presente contrato se entienden incorporadas, en lo pertinente, las disposiciones
+        legales que regulan las relaciones entre la empresa y sus trabajadores, en especial, las del contrato de trabajo
+        para el oficio que se suscribe, fuera de las obligaciones consignadas en los reglamentos de trabajo y de higiene
+        y seguridad industrial de la empresa.
+    </p>
+
+    <div class="clause-title">TERCERA. OBLIGACIONES DEL TRABAJADOR:</div>
+    <p>En relación con la actividad propia del trabajador, éste la ejecutará dentro de las siguientes modalidades que
+        implican claras obligaciones para el mismo:</p>
+    <ul>
+        <li>Observar rigurosamente las normas que le fije la empresa para la realización de la labor a que se refiere el
+            presente contrato.</li>
+        <li>Guardar absoluta reserva, salvo autorización expresa de la empresa, de todas aquellas informaciones que
+            lleguen a su conocimiento, en razón de su trabajo, y que sean por naturaleza privadas.</li>
+        <li>Ejecutar por sí mismo las funciones asignadas y cumplir estrictamente las instrucciones que le sean dadas
+            por la empresa, o por quienes la representen.</li>
+        <li>Cuidar permanentemente los intereses de la empresa.</li>
+        <li>Dedicar la totalidad de su jornada de trabajo a cumplir a cabalidad con sus funciones.</li>
+        <li>Programar diariamente su trabajo y asistir puntualmente a las reuniones que efectúe la empresa a las cuales
+            hubiere sido citado.</li>
+        <li>Observar completa armonía y comprensión con los clientes, superiores y compañeros.</li>
+        <li>Cumplir permanentemente con espíritu de lealtad, colaboración y disciplina con la empresa.</li>
+        <li><strong>Permanecer despierto y atento durante toda la jornada de trabajo.</strong></li>
+        <li>Avisar oportunamente y por escrito, a la empresa todo cambio en su dirección, teléfono o ciudad de
+            residencia.</li>
+    </ul>
+
+    <div class="clause-title">CUARTA. REMUNERACIÓN:</div>
+    <p>
+        EL EMPLEADOR pagará al TRABAJADOR por la prestación de sus servicios el salario indicado, pagadero en las
+        oportunidades también señaladas arriba.
+        Dentro de este pago se encuentra incluida la remuneración de los descansos dominicales y festivos de que tratan
+        los capítulos I y II del título VII del Código Sustantivo del Trabajo.
+    </p>
+    <p>
+        <strong>Se aclara y se conviene que en los casos en los que EL TRABAJADOR devengue comisiones o cualquiera otra
+            modalidad de salario variable, el 82.5% de dichos ingresos constituye remuneración ordinaria, y el 17.5%
+            restante está destinado a remunerar el descanso en los días dominicales y festivos.</strong>
+    </p>
+    <p>
+        PARÁGRAFO.— Las partes expresamente acuerdan que lo que reciba el trabajador o llegue a recibir en el futuro,
+        adicional a su salario ordinario, ya sean beneficios o auxilios habituales u ocasionales (alimentación,
+        habitación, vestuario, bonificaciones), no constituyen salario.
+    </p>
+
+    <div class="clause-title">QUINTA. TRABAJO SUPLEMENTARIO:</div>
+    <p>
+        Todo trabajo suplementario o en horas extras y todo trabajo en día domingo o festivo se remunerará conforme a la
+        ley. Para su reconocimiento, EL EMPLEADOR debe autorizarlo previamente por escrito. EL EMPLEADOR no reconocerá
+        ningún trabajo suplementario que no haya sido autorizado previamente.
+    </p>
+
+    <div class="clause-title">SEXTA. JORNADA LABORAL:</div>
+    <p>
+        EL TRABAJADOR se obliga a laborar la jornada ordinaria en los turnos y horas señaladas por EL EMPLEADOR. Podrán
+        acordar jornadas flexibles distribuidas en máximo seis días a la semana, respetando el máximo legal semanal,
+        dentro de la jornada ordinaria de 6 a.m. a 10 p.m. (según normativa vigente) o turnos rotativos.
+    </p>
+
+    <div class="clause-title">SÉPTIMA. PERÍODO DE PRUEBA:</div>
+    <p>
+        Los primeros dos meses del presente contrato se consideran período de prueba y, por consiguiente,
+        cualquiera de las partes podrá terminar el contrato unilateralmente, en cualquier momento durante dicho período.
+    </p>
+
+    <div class="clause-title">OCTAVA. TERMINACIÓN:</div>
+    <p>
+        Son justas causas para dar por terminado unilateralmente este contrato las enumeradas en el artículo 7º del
+        Decreto 2351 de 1965 y las faltas graves calificadas en el reglamento interno. Vencido el periodo de prueba, la
+        duración del contrato será hasta la FECHA DE VENCIMIENTO pactada.
+    </p>
+
+    <div class="clause-title">NOVENA. DOTACIÓN Y EQUIPOS:</div>
+    <p>
+        Los instrumentos especiales de trabajo (uniformes, radios, teléfonos, etc.) deberán ser conservados por el
+        TRABAJADOR y devueltos a la empresa a la terminación del contrato.
+    </p>
+
+    <div class="clause-title">DÉCIMA. TRASLADOS:</div>
+    <p>
+        Las partes podrán convenir que el trabajo se preste en lugar distinto del inicialmente contratado, siempre que
+        tales traslados no desmejoren las condiciones laborales. EL TRABAJADOR se obliga a aceptar los cambios de
+        puesto/oficio que decida EL EMPLEADOR dentro de su poder subordinante.
+    </p>
+
+    <div class="clause-title">UNDÉCIMA. INTERPRETACIÓN:</div>
+    <p>
+        Este contrato ha sido redactado de acuerdo con la ley y será interpretado de buena fe y en consonancia con el
+        Código Sustantivo del Trabajo.
+    </p>
+
+    <div class="clause-title">DUODÉCIMA. VALIDEZ:</div>
+    <p>
+        El presente contrato reemplaza en su integridad y deja sin efecto cualquier otro contrato verbal o escrito
+        celebrado entre las partes con anterioridad.
+    </p>
+
+    <div class="clause-title">CLÁUSULAS ADICIONALES (TERMINACIÓN):</div>
+    <p>También se dará por terminado este contrato por:</p>
+    <ol>
+        <li>Por solicitud verbal o escrita del cliente donde se presta el servicio (pérdida de confianza en el puesto).
+        </li>
+        <li>Por cancelación del contrato del servicio de Vigilancia entre el Contratante (Cliente) y el Contratista
+            (Delfos).</li>
+        <li>Por incurrir en conductas señaladas en los arts. 54 y 55 del Reglamento Interno de Trabajo.</li>
+        <li>Por hacer caso omiso a requerimientos de la empresa (capacitaciones, reuniones).</li>
+    </ol>
+
+    <div class="signatures-section">
+        <div class="signature-row">
+            <div class="sig-box">
+                <div class="line"></div>
+                <strong>EL EMPLEADOR</strong><br>
+                {{companyName}}<br>
+                NIT: {{companyNit}}
+            </div>
+
+            <div class="sig-box">
+                <div class="line"></div>
+                <strong>EL TRABAJADOR</strong><br>
+                {{employeeName}}<br>
+                C.C. {{employeeId}}<br>
+            </div>
+
+            <div class="sig-box fingerprint-cell">
+                <div class="fingerprint-box"></div>
+                <small>Huella</small>
+            </div>
+
+        </div>
+        <br>
+        <br>
+        <br>
+        <div class="sig-box" style="margin-top: 25px;">
+            <div class="line"></div>
+            <strong>TESTIGO</strong><br>
+            Nombre:<br>
+            C.C.<br>
+        </div>
+    </div>
+
+    <div class="small-note">
+        Generado electrónicamente por Plataforma Delfos - {{currentDate}}
+    </div>
+
+</body>
+
+</html>
