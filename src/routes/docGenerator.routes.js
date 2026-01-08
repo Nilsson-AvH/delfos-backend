@@ -1,7 +1,9 @@
 import express from 'express';
 import {
     generateContractPDF,
-    generateLaborCertificatePDF
+    generateLaborCertificatePDF,
+    generateCarnetPDF,
+    generatePresentationLetterPDF
 }
     from '../controllers/docGenerator.controller.js';
 import authenticationUser from '../middlewares/authentication.middleware.js';
@@ -13,5 +15,7 @@ const router = express.Router();
 // Solo Admins y Root pueden generar contratos legales
 router.post('/contract', [authenticationUser, authorizationUser], generateContractPDF);
 router.post('/certificate', [authenticationUser, authorizationUser], generateLaborCertificatePDF);
+router.post('/carnet', [authenticationUser, authorizationUser], generateCarnetPDF);
+router.post('/presentation-letter', [authenticationUser, authorizationUser], generatePresentationLetterPDF);
 
 export default router;

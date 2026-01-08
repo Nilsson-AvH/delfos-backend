@@ -8,11 +8,14 @@ import {
 } from "../../controllers/OperationalHistory.controller.js"; // <--- ¡AQUÍ ESTÁ!
 import authenticationUser from "../../middlewares/authentication.middleware.js";
 import authorizationUser from "../../middlewares/authorization.middleware.js";
+import { uploadImage } from "../../middlewares/multer.middleware.js";
+import { updateUserPhoto } from "../../controllers/userOperational.controller.js";
 
 const router = express.Router();
 
 // 1. RUTAS ESPECÍFICAS (Operational History) - ¡Ponlas primero!
 // Así Express revisa estas rutas largas antes de intentar encajarlas en un ID genérico.
+router.put('/photo', [authenticationUser, authorizationUser, uploadImage.single("photo")], updateUserPhoto);
 router.patch('/operational/:id/transfer', [authenticationUser, authorizationUser], transferOperationalUser);
 router.patch('/operational/:id/renew-contract', [authenticationUser, authorizationUser], renewContract);
 router.patch('/operational/:id/update-ss', [authenticationUser, authorizationUser], updateSocialSecurity);

@@ -1,4 +1,8 @@
-import { srvGenerateContract, srvGenerateCertificate } from '../services/docGenerator.service.js';
+import { 
+    srvGenerateContract, 
+    srvGenerateCertificate, 
+    srvGenerateCarnet, 
+    srvGeneratePresentationLetter } from '../services/docGenerator.service.js';
 import Contract from '../models/Contract.model.js';
 import User from '../models/users/User.model.js';
 
@@ -67,7 +71,80 @@ const generateLaborCertificatePDF = async (req, res) => {
     }
 };
 
+// =====================================================================
+// POST: Generar Carnet PDF
+// =====================================================================
+const generateCarnetPDF = async (req, res) => {
+    try {
+        const { userId } = req.body; // Solo necesitamos el ID del usuario
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
+
+        const adminId = req.userId; // Quien hace la petición
+
+        const generatedDoc = await srvGenerateCarnet(user, adminId);
+
+        res.status(201).json({
+            msg: "Carnet generado exitosamente",
+            url: generatedDoc.fileUrl,
+            document: generatedDoc
+        });
+
+    } catch (error) {
+        console.error("❌ Error generando carnet:", error);
+        res.status(500).json({ msg: "Error generando carnet", error: error.message });
+    }
+};
+
+// =====================================================================
+// POST: Generar Carta de Presentación
+// =====================================================================
+export const generatePresentationLetterPDF = async (req, res) => {
+    try {
+        // Recibimos userId y la fecha manual de inicio
+        const { userId, startDate } = req.body; 
+
+        // Validaciones básicas de entrada
+        if (!userId) {
+            return res.status(400).json({ msg: "El userId es obligatorio." });
+        }
+        if (!startDate) {
+            return res.status(400).json({ msg: "La fecha de inicio (startDate) es obligatoria (Formato: DD/MM/YYYY)." });
+        }
+
+        // Buscar usuario base
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ msg: "Usuario no encontrado en la base de datos." });
+        }
+
+        const adminId = req.userId; // ID del administrador que genera el documento (viene del token)
+
+        // Llamar al servicio con los datos manuales empaquetados
+        const generatedDoc = await srvGeneratePresentationLetter(user, { startDate }, adminId);
+
+        // Respuesta exitosa
+        res.status(201).json({
+            msg: "Carta de presentación generada exitosamente",
+            url: generatedDoc.fileUrl,
+            document: generatedDoc
+        });
+
+    } catch (error) {
+        console.error("❌ Error generando carta de presentación:", error);
+        
+        // Manejo de errores específicos del negocio
+        if (error.message.includes("no tiene un Cliente asignado")) {
+            return res.status(400).json({ msg: "El usuario operativo no tiene un cliente asignado actualmente." });
+        }
+
+        res.status(500).json({ msg: "Error interno generando el documento", error: error.message });
+    }
+};
+
 export {
     generateContractPDF,
-    generateLaborCertificatePDF
+    generateLaborCertificatePDF,
+    generateCarnetPDF
 }

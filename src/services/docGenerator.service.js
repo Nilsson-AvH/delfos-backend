@@ -6,9 +6,15 @@ import { v2 as cloudinary } from 'cloudinary';
 import moment from 'moment';
 import 'moment/locale/es.js'; // Configurar fechas en español
 import conversor from 'numero-a-letras'; // Conversor de números a letras, Importamos el paquete completo
+// Modelos para guardar el rastro
+import CompanyDocument from '../models/CompanyDocument.model.js';
+import OperationalUser from '../models/users/UserOperational.model.js';
+// Configuración global de fechas
+moment.locale('es');
 
-// Hacemos una función "puente" que detecta cómo vino la librería
-// ... import conversor ...
+// =====================================================================
+// HELPER: Conversor de números a letras (Conversor de números a letras)
+// =====================================================================
 const convertirNumero = (num) => {
     let texto = "";
 
@@ -31,17 +37,9 @@ const convertirNumero = (num) => {
         .replace("M.N.", "M/CTE")        // Por si acaso sale sin centavos
         .toUpperCase();
 };
-// ------------------
-
-// Modelos para guardar el rastro
-import CompanyDocument from '../models/CompanyDocument.model.js';
-import OperationalUser from '../models/users/UserOperational.model.js';
-
-// Configuración global de fechas
-moment.locale('es');
 
 // =====================================================================
-// HELPER: Leer imagen y convertir a Base64 (Para embeber en HTML)
+// HELPER: Leer imagen LOCAL y convertir a Base64 (Para embeber en HTML)
 // =====================================================================
 const imageToBase64 = async (imageName) => {
     try {
@@ -68,7 +66,36 @@ const imageToBase64 = async (imageName) => {
 };
 
 // =====================================================================
-// HELPER 1: Compilar HTML con Datos (Handlebars)
+// HELPER: Descargar imagen de INTERNET y convertir a Base64 (Para embeber en HTML)
+// =====================================================================
+const fetchImageToBase64 = async (url) => {
+    try {
+        // Validamos que sea una URL real
+        if (!url || !url.startsWith('http')) return null;
+
+        // Usamos 'fetch' nativo de Node.js (funciona igual que axios para esto)
+        const response = await fetch(url);
+        
+        if (!response.ok) throw new Error(`Error fetching image: ${response.statusText}`);
+
+        // Convertimos la respuesta a un Buffer (datos binarios)
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Convertimos a Base64
+        const base64 = buffer.toString('base64');
+        const mimeType = response.headers.get('content-type') || 'image/jpeg';
+
+        return `data:${mimeType};base64,${base64}`;
+
+    } catch (error) {
+        console.error("❌ Error descargando foto remota:", error.message);
+        return null; // Si falla, devolvemos null para que el carnet salga sin foto pero no rompa el proceso
+    }
+};
+
+// =====================================================================
+// HELPER: Compilar HTML con Datos (Handlebars)
 // =====================================================================
 const compileTemplate = async (templateName, data) => {
     const filePath = path.join(process.cwd(), 'src', 'templates', `${templateName}.html`);
@@ -77,36 +104,41 @@ const compileTemplate = async (templateName, data) => {
 };
 
 // =====================================================================
-// HELPER 2: Crear PDF (Puppeteer)
+// HELPER: Crear PDF (Puppeteer)
 // =====================================================================
-const createPdf = async (htmlContent) => {
+
+const createPdf = async (htmlContent, formatType = 'Letter') => {
     const browser = await puppeteer.launch({
         headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox'] // Vital para servidores Linux
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
-    const pdfBuffer = await page.pdf({
-        format: 'Letter', // <--- CAMBIO 1: Aseguramos tamaño CARTA (estaba A4)
+    // Configuración base (sin márgenes forzados por Puppeteer)
+    const pdfOptions = {
         printBackground: true,
-        // CAMBIO 2: QUITAMOS LOS MÁRGENES DE AQUÍ
-        // Dejamos que el CSS (@page { margin: 0 }) controle todo.
-        margin: {
-            top: '0px',
-            bottom: '0px',
-            left: '0px',
-            right: '0px'
-        }
-    });
+        margin: { top: '0px', bottom: '0px', left: '0px', right: '0px' }
+    };
+
+    // LÓGICA FLEXIBLE:
+    if (formatType === 'custom') {
+        // Si es 'custom', NO definimos 'format' y dejamos que el @page del CSS mande.
+        // Esto permite tamaños raros como el de una tarjeta de crédito.
+    } else {
+        // Si no, usamos el formato estándar (Letter, A4, etc.)
+        pdfOptions.format = formatType;
+    }
+
+    const pdfBuffer = await page.pdf(pdfOptions);
 
     await browser.close();
     return pdfBuffer;
 };
 
 // =====================================================================
-// HELPER 3: Subir a Cloudinary (Stream)
+// HELPER: Subir a Cloudinary (Stream)
 // =====================================================================
 const uploadToCloud = (buffer, folderName) => {
     return new Promise((resolve, reject) => {
@@ -126,7 +158,7 @@ const uploadToCloud = (buffer, folderName) => {
 };
 
 // =====================================================================
-// SERVICIO PRINCIPAL: Generar Contrato Laboral
+// SERVICIO: Generar Contrato Laboral
 // =====================================================================
 const srvGenerateContract = async (userBase, contractData, adminId) => {
 
@@ -263,12 +295,14 @@ const srvGenerateCertificate = async (userBase, adminId) => {
         signerRole: "Talento Humano"
     };
 
-    // 4. Generar
+    // 4. Generar HTML
     console.log(`📄 Certificando a ${templateData.employeeName}...`);
     const html = await compileTemplate('certifications/labor-certificate', templateData); // Ojo a la ruta
+
+    // 5. Generar PDF
     const pdfBuffer = await createPdf(html);
 
-    // 5. Subir y Guardar
+    // 6. Subir y Guardar
     const cloudResult = await uploadToCloud(pdfBuffer, 'delfos-official-docs');
 
     const newDoc = await CompanyDocument.create({
@@ -283,7 +317,160 @@ const srvGenerateCertificate = async (userBase, adminId) => {
     return newDoc;
 };
 
+// =====================================================================
+// SERVICIO: Generar Carnet Corporativo
+// =====================================================================
+const srvGenerateCarnet = async (userBase, adminId) => {
+
+    // 1. Obtener datos Operativos y Contrato
+    const operationalProfile = await OperationalUser.findOne({ user: userBase._id })
+        .populate('currentContract');
+
+    if (!operationalProfile) throw new Error("Perfil operativo incompleto.");
+
+    // 2. Cargar IMÁGENES LOCALES (Están en tu disco -> Usamos imageToBase64)
+    const bgFront = await imageToBase64('carnet-bg-front.png');
+    const bgBack = await imageToBase64('carnet-bg-back.png');
+    const qrImage = await imageToBase64('carnet-qr-back.png'); // QR estático
+
+    // 3. FOTO DEL USUARIO (Está en Cloudinary -> Usamos fetchImageToBase64)
+    const userPhotoUrl = operationalProfile.photo || "https://cdn-icons-png.flaticon.com/128/3135/3135715.png";
+
+    // Aquí ocurre la magia: La descargamos antes de generar el PDF
+    const userPhotoBase64 = await fetchImageToBase64(userPhotoUrl);
+
+    // 4. Preparar Datos (Mapeo estricto a tus 4 líneas)
+    const templateData = {
+        bgFront,
+        bgBack,
+        qrImage,
+        userPhoto: userPhotoBase64 || "https://cdn-icons-png.flaticon.com/128/3135/3135715.png",
+
+        // LÍNEA 1: Apellidos (Grande) -> lastName + secondLastName
+        surnames: `${userBase.lastName} ${userBase.secondLastName || ''}`.toUpperCase(),
+
+        // LÍNEA 2: Nombres -> names
+        names: userBase.names.toUpperCase(),
+
+        // LÍNEA 3: ID -> nuip
+        nuip: userBase.nuip,
+
+        // LÍNEA 4: Cargo -> Del contrato. Fallback a "PERSONAL OPERATIVO"
+        position: (operationalProfile.currentContract?.contractContent || "PERSONAL OPERATIVO").toUpperCase(),
+    };
+
+    // 5. Generar HTML HANDLEBARS
+    console.log(`🪪 Generando Carnet para ${templateData.names}...`);
+    const html = await compileTemplate('cards/employee-id', templateData);
+
+    // 6. Generar PDF PUPPETEER
+    // CAMBIO IMPORTANTE:
+    // Aunque el CSS dice 'Letter', pasamos 'Letter' explícitamente para asegurar
+    // que Puppeteer cree un canvas de ese tamaño.
+    // OJO: Si usas 'custom', funcionará igual porque el CSS tiene @page { size: Letter },
+    // pero usar 'Letter' aquí refuerza el estándar.
+    const pdfBuffer = await createPdf(html, 'Letter');
+
+    // 7. Subir a Cloudinary
+    const cloudResult = await uploadToCloud(pdfBuffer, 'delfos-carnets');
+
+    // 8. Guardar Registro
+    const newDoc = await CompanyDocument.create({
+        user: userBase._id,
+        documentType: 'CarnetCorporativo',
+        fileUrl: cloudResult.secure_url,
+        publicId: cloudResult.public_id,
+        referenceId: operationalProfile._id,
+        generatedBy: adminId
+    });
+
+    return newDoc;
+};
+
+// =====================================================================
+// SERVICIO: Generar Carta de Presentación
+// =====================================================================
+const srvGeneratePresentationLetter = async (userBase, manualData, adminId) => {
+    
+    // 1. Obtener datos (Vigilante -> Cliente -> Manager)
+    const operationalProfile = await OperationalUser.findOne({ user: userBase._id })
+        .populate({
+            path: 'currentClient',
+            populate: {
+                path: 'clientManager',
+                populate: { path: 'user' }
+            }
+        })
+        .populate('currentContract');
+
+    if (!operationalProfile) throw new Error("Perfil operativo no encontrado.");
+    if (!operationalProfile.currentClient) throw new Error("El usuario no tiene un Cliente asignado.");
+
+    // 2. Cargar IMÁGENES (Fondo igual al certificado + Firma)
+    // ---------------------------------------------------------------------
+    const letterheadImg = await imageToBase64('membrete-fondo.png'); // <--- EL MISMO FONDO
+    const signatureImg = await imageToBase64('firma-elsa.png');      // <--- FIRMA
+    // ---------------------------------------------------------------------
+
+    // 3. Extraer Datos
+    const client = operationalProfile.currentClient;
+    
+    // Fallback por si no hay manager asignado
+    let managerName = "ADMINISTRACIÓN"; 
+    if (client.clientManager && client.clientManager.user) {
+        const uMan = client.clientManager.user;
+        managerName = `${uMan.names} ${uMan.lastName}`;
+    }
+
+    // 4. Preparar Variables para HTML
+    const templateData = {
+        // Imágenes
+        letterheadImage: letterheadImg,
+        signatureImage: signatureImg,
+
+        // Fecha Generación
+        currentDate: moment().format('D [de] MMMM [de] YYYY'), // "15 de diciembre de 2025"
+        
+        // Destinatario
+        managerName: managerName.toUpperCase(),
+        clientName: client.companyName.toUpperCase(),
+        
+        // Cuerpo
+        employeeName: `${userBase.names} ${userBase.lastName} ${userBase.secondLastName || ''}`.toUpperCase(),
+        employeeId: new Intl.NumberFormat('es-CO').format(userBase.nuip),
+        
+        // Fecha Manual (o por defecto "FECHA POR DEFINIR")
+        startDate: manualData.startDate ? moment(manualData.startDate, "DD/MM/YYYY").format('D [de] MMMM [de] YYYY') : "FECHA POR DEFINIR",
+        
+        // Cargo (del contrato)
+        position: (operationalProfile.currentContract?.contractContent || "VIGILANTE").toUpperCase(),
+    };
+
+    // 5. Generar PDF
+    console.log(`✉️ Generando Carta Presentación para ${templateData.employeeName}...`);
+    const html = await compileTemplate('letters/presentation-letter', templateData);
+    
+    // Usamos 'Letter' para asegurar tamaño carta, pero sin márgenes de puppeteer (margin:0 en css)
+    const pdfBuffer = await createPdf(html, 'Letter'); 
+
+    // 6. Subir y Guardar
+    const cloudResult = await uploadToCloud(pdfBuffer, 'delfos-official-docs');
+
+    const newDoc = await CompanyDocument.create({
+        user: userBase._id,
+        documentType: 'CartaPresentacion',
+        fileUrl: cloudResult.secure_url,
+        publicId: cloudResult.public_id,
+        referenceId: operationalProfile.currentClient._id,
+        generatedBy: adminId
+    });
+
+    return newDoc;
+};
+
 export {
     srvGenerateContract,
-    srvGenerateCertificate
+    srvGenerateCertificate,
+    srvGenerateCarnet,
+    srvGeneratePresentationLetter
 }

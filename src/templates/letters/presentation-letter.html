@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Carta de Presentación</title>
+    <style>
+        /* 1. CONFIGURACIÓN DE PÁGINA (Igual al Certificado) */
+        @page {
+            size: Letter;
+            margin: 0mm;
+            /* Cero márgenes para que entre el fondo */
+        }
+
+        /* * {
+            border: 1px solid red;
+        } */
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12pt;
+            /* Interlineado 1.5 es más estándar para cartas que el 2.0 del certificado */
+            line-height: 1.5;
+            color: #000;
+            text-align: justify;
+            position: relative;
+
+            /* PADDING EXACTO DEL CERTIFICADO (Para respetar el membrete) */
+            padding: 5.5cm 3cm 2cm 3cm;
+            box-sizing: border-box;
+        }
+
+        /* 2. FONDO (Igual al Certificado) */
+        .letterhead-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -10;
+            display: block;
+        }
+
+        /* 3. ESTRUCTURA DE LA CARTA */
+
+        .header-date {
+            margin-bottom: 30px;
+        }
+
+        .addressee {
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .addressee p {
+            margin: 0;
+            /* Párrafos pegaditos en el destinatario */
+        }
+
+        .subject {
+            /* text-align: center; */
+            /* O left, según prefieras, en el Word parece justificado/izq */
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .content p {
+            margin-bottom: 0px;
+        }
+
+        .highlight {
+            font-weight: bold;
+        }
+
+        /* FIRMA */
+        .signature-section {
+            margin-top: 20px;
+            /* Espacio para la firma */
+        }
+
+        .signature-img {
+            height: 80px;
+            /* Ajusta según el tamaño real de tu firma */
+            display: block;
+            margin-bottom: 0px;
+            margin-left: -10px;
+            /* Pequeño ajuste visual a la izquierda */
+        }
+
+        .signer-name {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .signer-role {
+            font-style: italic;
+            /* O normal, según prefieras */
+        }
+    </style>
+</head>
+
+<body>
+
+    {{#if letterheadImage}}
+    <img src="{{letterheadImage}}" alt="Membrete" class="letterhead-bg">
+    {{/if}}
+
+    <div class="header-date">
+        Bogotá, D.C., {{currentDate}}
+    </div>
+
+    <div class="addressee">
+        <p>Señor(a): Administrador (a)</p>
+        <p style="text-transform: uppercase;">{{managerName}}</p>
+        <p style="text-transform: uppercase;">{{clientName}}</p>
+        <p>Ciudad</p>
+    </div>
+
+    <div class="subject">
+        Asunto: Presentación de {{position}}.
+    </div>
+
+    <div class="content">
+        <p>Cordial saludo,</p>
+
+        <p>
+            Por medio de la presente, nos permitimos presentar al(la) señor(a),
+            <span class="highlight">{{employeeName}}</span>, identificado(a) con C.C. No
+            <span class="highlight">{{employeeId}}</span>, quien asumirá funciones a partir del día
+            <span class="highlight">{{startDate}}</span>, con el cargo de
+            <span class="highlight">{{position}}</span>.
+        </p>
+
+        <p>
+            Agradecemos de antemano su atención y quedamos atentos a cualquier solicitud o inquietud.
+        </p>
+        <br>
+        <br>
+        <br>
+        <p>Cordialmente,</p>
+    </div>
+
+    <div class="signature-section">
+        {{#if signatureImage}}
+        <img src="{{signatureImage}}" class="signature-img" alt="Firma">
+        {{/if}}
+
+        <div class="signer-name">MARIA ELSA RIVILLAS V</div>
+        <div class="signer-role">Directora Talento Humano</div>
+        <div>Seguridad Delfos Ltda.</div>
+    </div>
+
+</body>
+
+</html>

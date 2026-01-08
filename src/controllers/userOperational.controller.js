@@ -10,6 +10,8 @@ import {
     dbCreateContract,
     dbCreateSocialSecurity
 } from '../services/userOperational.service.js'; // Importamos los servicios de registro de operativo, contratos y parafiscales
+import { v2 as cloudinary } from 'cloudinary';
+import OperationalUser from '../models/users/UserOperational.model.js';
 
 const createOperationalUser = async (req, res) => {
 
@@ -163,6 +165,81 @@ const createOperationalUser = async (req, res) => {
     }
 };
 
+// =====================================================================
+// PUT: Actualizar Foto de Perfil (Con borrado de la anterior)
+// =====================================================================
+const updateUserPhoto = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const file = req.file;
+
+        if (!userId) return res.status(400).json({ msg: "El userId es obligatorio." });
+        if (!file) return res.status(400).json({ msg: "No se ha subido ninguna imagen." });
+
+        // 1. Buscar al Usuario Operativo
+        const opUser = await OperationalUser.findOne({ user: userId });
+        if (!opUser) {
+            return res.status(404).json({ msg: "Perfil operativo no encontrado para este usuario." });
+        }
+
+        // 2. DETECTAR Y BORRAR FOTO ANTERIOR (Limpieza) 🧹
+        // Verificamos si tiene foto y si NO es la foto por defecto
+        const currentPhotoUrl = opUser.photo;
+        const defaultAvatar = 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png';
+
+        if (currentPhotoUrl && currentPhotoUrl !== defaultAvatar && currentPhotoUrl.includes('cloudinary')) {
+            try {
+                // Truco: Extraemos el public_id de la URL usando Regex
+                // Busca todo lo que está después de '/upload/' (y opcionalmente la versión 'v123/') hasta el punto de la extensión
+                const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/;
+                const match = currentPhotoUrl.match(regex);
+                
+                if (match && match[1]) {
+                    const publicId = match[1]; // ej: "delfos-avatars/tq9fywn..."
+                    console.log(`🗑️ Eliminando foto anterior: ${publicId}`);
+                    await cloudinary.uploader.destroy(publicId);
+                }
+            } catch (deleteError) {
+                console.error("⚠️ No se pudo eliminar la foto anterior de Cloudinary:", deleteError);
+                // No detenemos el proceso, solo avisamos en consola
+            }
+        }
+
+        // 3. Subir la NUEVA foto
+        const uploadStream = new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    folder: "delfos-avatars", 
+                    transformation: [
+                        { width: 500, height: 500, crop: "fill", gravity: "face" } 
+                    ]
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            stream.end(file.buffer);
+        });
+
+        const cloudImage = await uploadStream;
+
+        // 4. Guardar nueva URL en BD
+        opUser.photo = cloudImage.secure_url;
+        await opUser.save();
+
+        res.json({
+            msg: "Foto actualizada correctamente (y la anterior eliminada)",
+            photoUrl: opUser.photo
+        });
+
+    } catch (error) {
+        console.error("❌ Error subiendo foto:", error);
+        res.status(500).json({ msg: "Error interno subiendo la foto", error: error.message });
+    }
+};
+
 export {
-    createOperationalUser
+    createOperationalUser,
+    updateUserPhoto
 }

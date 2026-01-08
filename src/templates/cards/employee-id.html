@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* 1. CONFIGURACIÓN DE LA HOJA: CARTA VERTICAL */
+        @page {
+            size: Letter;
+            /* 216mm x 279mm */
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            /* margin: 50px 0 0 0; */
+            margin: 0;
+            /* padding: 0; */
+            padding-top: 50px;
+            width: 100%;
+            /* height: 100vh; */
+            /* Ocupa toda la altura para centrar */
+            background-color: #fff;
+
+            /* Centramos el carnet en la mitad de la hoja */
+            display: flex;
+            justify-content: center;
+            /* align-items: top; */
+            -webkit-print-color-adjust: exact;
+        }
+
+        /* 2. CONTENEDOR DOBLE (FRENTE + REVERSO PEGADOS) */
+        .print-canvas {
+            width: 164mm;
+            /* 82mm * 2 */
+            height: 53mm;
+            display: flex;
+            /* Pone los hijos uno al lado del otro */
+            border: 1px dashed #ddd;
+            /* Guía de corte sutil externa */
+        }
+
+        /* 3. CADA CARA DEL CARNET */
+        .card-face {
+            position: relative;
+            width: 82mm;
+            height: 53mm;
+            overflow: hidden;
+            /* El borde derecho del primero servirá de guía de doblez */
+        }
+
+        .card-face.front {
+            border-right: 1px dashed rgba(0, 0, 0, 0.3);
+            /* LÍNEA DE DOBLEZ */
+        }
+
+        .bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* --- ELEMENTOS INTERNOS (POSICIONES RELATIVAS A SU CARA) --- */
+
+        /* FOTO */
+        .photo-container {
+            position: absolute;
+            /* AJUSTE FINO DE POSICIÓN (Abajo y Derecha) */
+            top: 23.9mm;
+            /* Antes 24mm */
+            left: 2.4mm;
+            /* Antes 2.5mm */
+
+            /* AJUSTE DE TAMAÑO (Un pelín más grande para llenar el marco) */
+            width: 21mm;
+            /* Antes 20mm */
+            height: 27mm;
+            /* Antes 26mm */
+
+            z-index: 10;
+            overflow: hidden;
+            border-radius: 2px;
+            background-color: #fff;
+            /* Fondo blanco por si la foto no llena todo */
+            /* border: 1px solid black; */
+        }
+
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+
+            /* 'cover' llena el cuadro recortando sobrantes. 
+               'contain' muestra toda la foto pero deja bordes blancos.
+               Para carnets, 'cover' suele ser mejor profesionalmente. */
+            object-fit: cover;
+
+            /* Alineamos al Centro-Arriba (Prioridad a la cara, no al pecho) */
+            object-position: center top;
+        }
+
+        /* TEXTOS */
+        .text-section {
+            position: absolute;
+            top: 28mm;
+            /* Alineado con la parte superior de la foto aprox */
+            left: 28mm;
+            /* A la derecha de la foto */
+            width: 48mm;
+            /* Espacio restante hasta el borde derecho (82-31 aprox) */
+            text-align: center;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .line-surnames {
+            font-size: 10pt;
+            /* Apellidos grandes */
+            margin-bottom: 2px;
+        }
+
+        .line-names {
+            font-size: 10pt;
+            margin-bottom: 2px;
+        }
+
+        .line-id {
+            font-size: 10pt;
+            /* Cédula legible */
+            margin-bottom: 2px;
+        }
+
+        .line-position {
+            font-size: 10pt;
+            color: #000;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            /* Máximo 2 líneas de cargo */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* QR (EN EL REVERSO) */
+        .qr-container {
+            position: absolute;
+            bottom: 4mm;
+            right: 4mm;
+            width: 20mm;
+            height: 20mm;
+            background: #fff;
+            /* Fondo blanco por si el QR tiene transparencia */
+            padding: 1mm;
+            /* Pequeño borde blanco seguro */
+        }
+
+        .qr-container img {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="print-canvas">
+
+        <div class="card-face front">
+            {{#if bgFront}}
+            <img src="{{bgFront}}" class="bg-img">
+            {{/if}}
+
+            <div class="photo-container">
+                <img src="{{userPhoto}}" alt="Foto">
+            </div>
+
+            <div class="text-section">
+                <div class="line-surnames">{{surnames}}</div>
+                <div class="line-names">{{names}}</div>
+                <div class="line-id">CC. {{nuip}}</div>
+                <div class="line-position">{{position}}</div>
+            </div>
+        </div>
+
+        <div class="card-face back">
+            {{#if bgBack}}
+            <img src="{{bgBack}}" class="bg-img">
+            {{/if}}
+
+            <div class="qr-container">
+                {{#if qrImage}}
+                <img src="{{qrImage}}" alt="QR">
+                {{/if}}
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

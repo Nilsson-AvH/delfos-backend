@@ -51,17 +51,24 @@
 - Mongoose
 - MongoDB
 - Mongo Compass
-- Cloudinary
-- Multer
-- Multer Storage Cloudinary
-- Bcrypt
-- JsonWebToken
-- dotenv
 - Conventional Commits
 - Git
 - GitHub
 - VSCode
 - Postman
+
+- bcryptjs: "^3.0.3" (Encriptación de contraseñas)
+- cloudinary: "^2.8.0" (Almacenamiento de archivos en la nube)
+- dotenv: "^17.2.3" (Variables de entorno)
+- express: "^5.1.0" (Framework web)
+- fs-extra: "^11.3.3" (Manejo de archivos)
+- handlebars: "^4.7.8" (Compilación de plantillas HTML)
+- jsonwebtoken: "^9.0.3" (Autenticación)
+- moment: "^2.30.1" (Manejo de fechas)
+- multer: "^2.0.2" (Subida de archivos)
+- multer-storage-cloudinary: "^2.2.1" (Almacenamiento de archivos en Cloudinary la nube)
+- numero-a-letras: "^1.0.6" (Conversión de números a letras)
+- puppeteer: "^24.34.0" (Generación de PDFs)
 
 ## 🏛️ Arquitectura de la Base de Datos
 
