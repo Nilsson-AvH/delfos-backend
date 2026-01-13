@@ -34,7 +34,7 @@ const CompanyDocumentSchema = new Schema({
         required: true
     },
 
-    // 3. Referencia al Archivo (Cloudinary)
+    // 3. Referencia al Archivo (Storage)
     // ----------------------------------------------------------------
     fileUrl: {
         type: String,
@@ -43,6 +43,13 @@ const CompanyDocumentSchema = new Schema({
     publicId: {
         type: String, // Para poder borrarlo o actualizarlo en la nube
         required: true
+    },
+
+    storageProvider: {
+        type: String,
+        enum: ['local', 'cloudinary', 's3'],
+        required: true,
+        default: 'local'
     },
 
     // 4. Rastro de Datos (Audit Trail)

@@ -76,11 +76,60 @@ const UserSchema = new Schema({
         required: true,
         enum: ['active', 'inactive', 'suspended'],
         default: 'inactive' // Por defecto nacen inactivos si es registro público
+    },
+
+    // 👇👇👇 CAMPOS DE FOTO (MIGRADO DE OPERATIONAL) 👇👇👇
+    photo: {
+        type: String,
+        required: false,
+        default: 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png' // Avatar por defecto
+    },
+    
+    // Metadatos para poder borrar la foto antigua del Storage Híbrido
+    photoPublicId: { 
+        type: String, 
+        select: false
+    }, // Oculto por defecto
+
+    photoStorageProvider: { 
+        type: String, 
+        enum: ['local', 'cloudinary', 's3'], 
+        default: 'local' 
     }
+    // 👆👆👆 ---------------------------------------------------- 👆👆👆
 
 }, {
     timestamps: true, // Gestiona automáticamente createdAt y updatedAt
-    versionKey: false // Evita que Mongoose cree el campo __v
+    versionKey: false, // Evita que Mongoose cree el campo __v
+    // AQUÍ ACTIVAMOS LOS VIRTUALS
+    // Esto hace que aparezcan cuando haces un res.json(user)
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// ----------------------------------------------------------------
+// VIRTUALS (Campos calculados para externos)
+// ----------------------------------------------------------------
+
+// 1. Primer Nombre (Para correos tipo "Hola Juan")
+UserSchema.virtual('firstName').get(function() {
+    if (!this.names) return '';
+    return this.names.split(' ')[0];
+});
+
+// 2. Segundo Nombre (El resto del string names)
+UserSchema.virtual('middleName').get(function() {
+    if (!this.names) return '';
+    const partes = this.names.trim().split(/\s+/); // Split por cualquier espacio
+    // Si solo tiene un nombre (ej: "Andres"), esto devuelve string vacío
+    return partes.slice(1).join(' ');
+});
+
+// 3. Nombre Completo Real (Concatenación total)
+// Útil para buscadores o títulos de perfil sin tener que sumar strings en el front
+UserSchema.virtual('fullName').get(function() {
+    // Usamos filter(Boolean) para que si secondLastName no existe, no deje un espacio doble
+    return [this.names, this.lastName, this.secondLastName].filter(Boolean).join(' ');
 });
 
 const userModel = mongoose.model('User', UserSchema);

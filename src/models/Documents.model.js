@@ -69,6 +69,15 @@ const DocumentSchema = new Schema({
         required: false
     },
 
+    // 👇👇👇 CAMPO OBLIGATORIO para elegir el proveedor de almacenamiento 👇👇👇
+    storageProvider: {
+        type: String,
+        enum: ['local', 'cloudinary', 's3'],
+        required: true,
+        default: 'local'
+    },
+    // 👆👆👆 ------------------------ 👆👆👆
+
     // 4. Estado y Aprobación (NUEVO - WORKFLOW)
     // ----------------------------------------------------------------
     status: {

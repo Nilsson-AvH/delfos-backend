@@ -100,7 +100,7 @@ const generateCarnetPDF = async (req, res) => {
 // =====================================================================
 // POST: Generar Carta de Presentación
 // =====================================================================
-export const generatePresentationLetterPDF = async (req, res) => {
+const generatePresentationLetterPDF = async (req, res) => {
     try {
         // Recibimos userId y la fecha manual de inicio
         const { userId, startDate } = req.body; 
@@ -146,5 +146,6 @@ export const generatePresentationLetterPDF = async (req, res) => {
 export {
     generateContractPDF,
     generateLaborCertificatePDF,
-    generateCarnetPDF
+    generateCarnetPDF,
+    generatePresentationLetterPDF
 }

@@ -118,11 +118,13 @@ const OperationalUserSchema = new Schema({
     // Estadísticas Físicas
     height: { type: Number, required: true }, // Antes: estatura
     weight: { type: Number, required: true }, // Antes: peso
-    photo: {
-        type: String,
-        required: false,
-        default: 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png'
-    },
+    
+    // 👇👇👇 CAMPOS DE FOTO (MIGRADO HACIA USER, YA NO VIVEN ACA) 👇👇👇
+    // photo: {
+    //     type: String,
+    //     required: false,
+    //     default: 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png'
+    // },
 
     // Domicilio y Contacto
     address: { type: String, required: true, trim: true }, // Antes: direccionResidencia

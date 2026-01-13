@@ -21,7 +21,11 @@ import {
 
 import { createOperationalUser } from "./userOperational.controller.js"; // Controlador especializado de operativos
 import { encryptPassword } from "../helpers/bcrypt.helper.js"; // Cifrado de contraseñas
+import { dbGetCompanyConfig } from "../services/system/systemCompany.service.js"; // <--- 1. Importar config
 import User from "../models/users/User.model.js";
+
+// 👇 IMPORTAMOS LOS SERVICIOS MAESTROS DE STORAGE 👇
+import { srvSaveCompanyFile, srvDeleteCompanyFile } from "../services/storage/storage.service.js";
 
 // =====================================================================
 // 1. CREACIÓN DE USUARIOS (LOGICA MAESTRA)
@@ -39,6 +43,41 @@ const createUser = async (req, res) => {
         if (!role) {
             return res.status(400).json({ msg: "El campo 'role' es obligatorio." });
         }
+
+        // =================================================================
+        // 🛑 VALIDACIÓN SAAS: LÍMITE DE USUARIOS (ASIENTOS)
+        // =================================================================
+        // Definimos qué roles consumen licencia (Solo la gente de oficina)
+        const licenseConsumingRoles = ['superadmin', 'admin', 'auditor'];
+
+        // Si el usuario que intentan crear GASTA licencia... verificamos el cupo.
+        if (licenseConsumingRoles.includes(role)) {
+            
+            // 1. Obtenemos la configuración de la empresa (Límites)
+            const companyConfig = await dbGetCompanyConfig();
+            
+            if (!companyConfig) {
+                return res.status(500).json({ msg: "Error Crítico: El sistema no tiene configuración de empresa." });
+            }
+
+            // 2. Contamos cuántos administrativos existen ACTUALMENTE
+            // OJO: No contamos 'operational' ni 'client' ni 'registered'
+            const currentAdminsCount = await User.countDocuments({
+                role: { $in: licenseConsumingRoles },
+                status: { $ne: 'suspended' } // Opcional: Si quieres ignorar a los suspendidos
+            });
+
+            // 3. El Muro de Pago
+            if (currentAdminsCount >= companyConfig.maxUsersAllowed) {
+                return res.status(403).json({ 
+                    msg: `⛔ LÍMITE DE USUARIOS ALCANZADO. Su plan actual (${companyConfig.planType}) permite máximo ${companyConfig.maxUsersAllowed} usuarios administrativos. Contacte a ventas para ampliar su cupo.` 
+                });
+            }
+            
+            // Si pasa aquí, es porque hay cupo. Continuamos...
+            console.log(`✅ Cupo de usuarios válido: ${currentAdminsCount}/${companyConfig.maxUsersAllowed}`);
+        }
+        // =================================================================
 
         let result;
 
@@ -67,7 +106,7 @@ const createUser = async (req, res) => {
                 result = await createClientManagerProfile(inputData);
                 break;
 
-            // CASO C: OPERATIVO (El "Monstruo")
+            // CASO C: OPERATIVO (El "Monstruo" - NO CONSUME LICENCIA EN EL IF DE ARRIBA)
             case 'operational':
                 // -----------------------------------------------------------
                 // CAMBIO CLAVE: DELEGACIÓN DE CONTROL
@@ -318,11 +357,73 @@ const updateUserById = async (req, res) => {
     }
 };
 
+// =====================================================================
+// FUNCIÓN: ACTUALIZAR FOTO DE PERFIL (HÍBRIDO) 📸
+// =====================================================================
+const updateUserProfilePhoto = async (req, res) => {
+    try {
+        const { userId } = req.body; // ID del usuario a editar
+        
+        // Validaciones
+        if (!userId) return res.status(400).json({ msg: "El userId es obligatorio." });
+        if (!req.file) return res.status(400).json({ msg: "No se ha subido ninguna imagen." });
+
+        // 1. Buscar Usuario (Necesitamos sus datos de foto anterior)
+        // Usamos select('+photoPublicId') porque en el modelo lo pusimos oculto
+        const user = await User.findById(userId).select('+photoPublicId');
+
+        if (!user) {
+            return res.status(404).json({ msg: "Usuario no encontrado." });
+        }
+
+        // 2. BORRADO INTELIGENTE (Limpieza) 🧹
+        // Si ya tiene una foto custom (no es la default) y tiene metadatos, la borramos del storage
+        const defaultAvatar = 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png';
+        
+        if (user.photo && user.photo !== defaultAvatar && user.photoPublicId) {
+            console.log(`🗑️ Borrando avatar anterior: ${user.photoPublicId} (${user.photoStorageProvider})`);
+            await srvDeleteCompanyFile(
+                user.photoPublicId, 
+                user.photoStorageProvider || 'local', 
+                'delfos-avatars' // Carpeta de avatares
+            );
+        }
+
+        // 3. SUBIR NUEVA FOTO (Híbrido) 🚀
+        // Usamos el servicio maestro que decide si va a Local, S3 o Cloudinary
+        const extension = req.file.mimetype.split('/')[1] || 'jpeg';
+        
+        const storageResult = await srvSaveCompanyFile(
+            req.file.buffer,
+            'delfos-avatars', // Carpeta específica para fotos de perfil
+            extension
+        );
+
+        // 4. ACTUALIZAR BASE DE DATOS
+        user.photo = storageResult.url;
+        user.photoPublicId = storageResult.publicId;
+        user.photoStorageProvider = storageResult.provider;
+
+        await user.save();
+
+        res.json({
+            msg: "Foto de perfil actualizada correctamente.",
+            photoUrl: user.photo,
+            provider: user.photoStorageProvider
+        });
+
+    } catch (error) {
+        console.error("❌ Error actualizando foto:", error);
+        res.status(500).json({ msg: "Error interno al actualizar la foto", error: error.message });
+    }
+};
+
 // Exportar
 export {
     createUser,
     getAllUsers,
     getUserById,
     deleteUserById,
-    updateUserById
+    updateUserById,
+    updateUserProfilePhoto
 };

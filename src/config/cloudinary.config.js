@@ -41,4 +41,5 @@ const storage = new CloudinaryStorage({
 // 3. Crear el Middleware
 const uploadCloud = multer({ storage });
 
+export { cloudinary }; 
 export default uploadCloud;

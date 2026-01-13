@@ -1,6 +1,7 @@
 import CompanyDocument from '../models/CompanyDocument.model.js';
 import OperationalUser from '../models/users/UserOperational.model.js';
-import { v2 as cloudinary } from 'cloudinary';
+// 👇 IMPORTANTE: Importamos tu nuevo servicio maestro
+import { srvDeleteCompanyFile } from '../services/storage/storage.service.js';
 
 // =====================================================================
 // GET: Ver TODOS los documentos generados (Historial global)
@@ -8,8 +9,8 @@ import { v2 as cloudinary } from 'cloudinary';
 export const getAllCompanyDocuments = async (req, res) => {
     try {
         const docs = await CompanyDocument.find()
-            .populate('user', 'names lastName nuip') // Traemos nombre del empleado
-            .populate('generatedBy', 'names')        // Traemos quién lo generó
+            .populate('user', 'names lastName nuip') 
+            .populate('generatedBy', 'names')        
             .sort({ createdAt: -1 });
 
         res.json(docs);
@@ -24,17 +25,13 @@ export const getAllCompanyDocuments = async (req, res) => {
 // =====================================================================
 export const getDocumentsByOperationalId = async (req, res) => {
     try {
-        const { id } = req.params; // Recibimos ID del OperationalUser
+        const { id } = req.params; 
 
-        // 1. Primero buscamos al Operativo para saber cuál es su 'User' base
-        // Recuerda: CompanyDocument se guarda con el ID del Usuario Base (Authentication)
         const opUser = await OperationalUser.findById(id);
-
         if (!opUser) {
             return res.status(404).json({ msg: "Usuario Operativo no encontrado" });
         }
 
-        // 2. Buscamos los documentos que pertenezcan a ese Usuario Base
         const docs = await CompanyDocument.find({ user: opUser.user })
             .sort({ createdAt: -1 });
 
@@ -51,34 +48,42 @@ export const getDocumentsByOperationalId = async (req, res) => {
 };
 
 // =====================================================================
-// DELETE: Borrar Documento (BD + Cloudinary)
+// DELETE: Borrar Documento (Inteligente: Local / Cloudinary / S3)
 // =====================================================================
 export const deleteCompanyDocument = async (req, res) => {
     try {
-        const { id } = req.params; // ID del CompanyDocument
+        const { id } = req.params; 
 
-        // 1. Buscamos el documento primero (necesitamos el publicId)
+        // 1. Buscamos el documento primero
         const docToDelete = await CompanyDocument.findById(id);
-
         if (!docToDelete) {
             return res.status(404).json({ msg: "Documento no encontrado" });
         }
 
-        // 2. Borrar de CLOUDINARY
-        // Usamos el publicId que guardamos cuando lo creamos
-        if (docToDelete.publicId) {
-            await cloudinary.uploader.destroy(docToDelete.publicId, {
-                resource_type: 'raw' // IMPORTANTE: Como es PDF, suele ser 'raw' o 'image' según cómo se subió. 
-                // En el generador usamos 'raw'.
-            });
+        // 2. DETECTAR CARPETA CORRECTA 📂
+        // Para borrar en Local, necesitamos saber en qué carpeta está.
+        // Esta lógica debe coincidir con la que usaste al crear (en docGenerator).
+        let folderName = 'delfos-official-docs'; // Por defecto (Contratos, Certificados, Cartas)
+        
+        if (docToDelete.documentType === 'CarnetCorporativo') {
+            folderName = 'delfos-carnets';
         }
 
-        // 3. Borrar de MONGODB
+        // 3. EJECUTAR BORRADO FÍSICO (Usando el Servicio Maestro)
+        // Pasamos: ID, Proveedor (local/s3/cloudinary) y la Carpeta
+        await srvDeleteCompanyFile(
+            docToDelete.publicId, 
+            docToDelete.storageProvider, // <--- Esto le dice al helper qué estrategia usar
+            folderName
+        );
+
+        // 4. BORRAR DE MONGODB
         await CompanyDocument.findByIdAndDelete(id);
 
         res.json({
-            msg: "Documento eliminado de la base de datos y de la nube correctamente.",
-            deletedId: docToDelete._id
+            msg: "Documento eliminado correctamente (Físico y BD).",
+            deletedId: docToDelete._id,
+            provider: docToDelete.storageProvider
         });
 
     } catch (error) {

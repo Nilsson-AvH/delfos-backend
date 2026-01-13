@@ -6,83 +6,65 @@ import {
     dbDeleteDocumentById,
     dbGetDocumentsByUserId
 } from "../services/document.service.js";
-
-// Necesitamos validar que el usuario exista antes de asignarle un documento
 import { dbGetUserById } from "../services/user.service.js";
 import OperationalUser from "../models/users/UserOperational.model.js";
 
-// 1. IMPORTAR CLOUDINARY AQUÍ ARRIBA ☁️
-import { v2 as cloudinary } from 'cloudinary';
+// 👇 IMPORTAMOS NUESTROS SERVICIOS MAESTROS DE STORAGE 👇
+import { srvSaveCompanyFile, srvDeleteCompanyFile } from "../services/storage/storage.service.js";
 
 // =====================================================================
-// CREATE (ADAPTADO AL MODELO DELFOS)
+// CREATE (MIGRADO A STORAGE HÍBRIDO) 🚀
 // =====================================================================
 const createDocument = async (req, res) => {
     try {
-        //console.log("--> 1. Entrando a createDocument");
-        //console.log("--> REQ.BODY (Lo que llega del body):", req.body); // <--- ESTO ES LO QUE NECESITO VER
-        //console.log("--> REQ.FILE (Lo que llega de Cloudinary):", req.file); // <--- ESTO ES LO QUE NECESITO VER
-        // 1. Extraer datos del Body (Texto) y del File (Cloudinary)
-        // Nota: 'documentType' debe coincidir con tu ENUM (ej: 'Cedula', 'CursoVigilancia')
-
-        // req.body trae: userId, documentType, title, expiryDate, verificationCode, issuingEntity (texto)
         const {
-            userId,
-            documentType,
-            title,
-            expiryDate,
-            verificationCode,
-            issuingEntity
+            userId, documentType, title, expiryDate, verificationCode, issuingEntity
         } = req.body;
 
-        // req.file trae: path (URL de Cloudinary), originalname, mimetype (archivo)
-        const file = req.file;
+        // Validaciones Básicas
+        if (!userId) return res.status(400).json({ msg: "Falta el ID del usuario (userId)." });
+        if (!documentType) return res.status(400).json({ msg: "El tipo de documento es obligatorio." });
+        if (!req.file) return res.status(400).json({ msg: "No has subido ningún archivo." });
 
-        // Buscamos el ID en cualquiera de las dos propiedades posibles
-        const cloudId = file.filename || file.public_id;
-
-        // 2. Validaciones Previas
-        if (!userId) {
-            return res.status(400).json({ msg: "Falta el ID del usuario (userId)." });
-        }
-        if (!documentType) {
-            return res.status(400).json({ msg: "El tipo de documento es obligatorio." });
-        }
-        if (!file) {
-            return res.status(400).json({ msg: "No has subido ningún archivo (key: 'file')." });
-        }
-
-        // 3. Verificar existencia del usuario base
+        // Verificar usuario
         const userExists = await dbGetUserById(userId);
-        if (!userExists) {
-            return res.status(404).json({ msg: "El usuario no existe." });
-        }
+        if (!userExists) return res.status(404).json({ msg: "El usuario no existe." });
 
-        // 4. PREPARAR OBJETO PARA MONGOOSE
-        // Mapeamos lo que devuelve Cloudinary a tus nombres de campo
+        // 1. DETERMINAR EXTENSIÓN
+        const extension = req.file.mimetype.split('/')[1] || 'pdf'; // Ej: 'jpeg', 'pdf'
+
+        // 2. GUARDAR ARCHIVO (Usando el Servicio Maestro)
+        // Usamos una carpeta separada 'delfos-user-docs' para no mezclarlos con los contratos
+        const storageResult = await srvSaveCompanyFile(
+            req.file.buffer, 
+            'delfos-user-docs', // Nombre de la carpeta
+            extension
+        );
+
+        // 3. PREPARAR DATA PARA MONGO
         const docData = {
             user: userId,
             documentType: documentType,
-            title: title || file.originalname, // Si no manda título, usamos el nombre del archivo
+            title: title || req.file.originalname,
 
-            // --- DATOS DE CLOUDINARY ---
-            fileUrl: file.path || file.secure_url,        // Tu modelo pide 'fileUrl'
-            publicId: cloudId,   // Importante para borrarlo después de la nube
-            mimeType: file.mimetype,   // Ej: image/jpeg, application/pdf
-            size: file.size,           // Peso en bytes
+            // --- DATOS DEL STORAGE HÍBRIDO ---
+            fileUrl: storageResult.url,
+            publicId: storageResult.publicId,
+            storageProvider: storageResult.provider, // <--- 'local', 's3' o 'cloudinary'
+            
+            mimeType: req.file.mimetype,
+            size: req.file.size,
 
-            // --- CAMPOS OPCIONALES (Para validaciones) Curso de Vigilancia---
+            // --- CAMPOS DE NEGOCIO ---
             expiryDate: expiryDate || null,
             verificationCode: verificationCode || null,
             issuingEntity: issuingEntity || null,
-            status: 'Pendiente' // Por defecto entra a revisión
+            status: 'Pendiente'
         };
 
-        // 5. GUARDAR EN BD (Aquí se activan tus validaciones pre-save)
         const documentRegistered = await dbRegisterDocument(docData);
 
-        // 6. VINCULAR AL PERFIL OPERATIVO
-        // Solo si es un operativo, guardamos la referencia en su perfil
+        // 4. VINCULAR AL PERFIL OPERATIVO
         if (userExists.role === 'operational') {
             await OperationalUser.findOneAndUpdate(
                 { user: userId },
@@ -91,19 +73,15 @@ const createDocument = async (req, res) => {
         }
 
         res.status(201).json({
-            msg: "Documento subido, analizado y registrado exitosamente.",
+            msg: "Documento registrado exitosamente.",
             document: documentRegistered
         });
 
     } catch (error) {
         console.error(error);
-
-        // Manejo de tus errores de validación (ej: "Falta expiryDate en Curso")
-        if (error.message.includes("requiere fecha de vencimiento") ||
-            error.message.includes("requiere el código")) {
+        if (error.message.includes("requiere fecha") || error.message.includes("código")) {
             return res.status(400).json({ msg: "Error de Validación", error: error.message });
         }
-
         res.status(500).json({ msg: "Error al procesar el documento", error: error.message });
     }
 };
@@ -170,51 +148,38 @@ const updateDocumentById = async (req, res) => {
 };
 
 // =====================================================================
-// DELETE (BORRADO TOTAL: NUBE + BD + REFERENCIA USUARIO) 🗑️
+// DELETE (MIGRADO A STORAGE HÍBRIDO) 🗑️
 // =====================================================================
 const deleteDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // 1. BUSCAR EL DOCUMENTO PREVIAMENTE
-        // Necesitamos saber:
-        // a) Su publicId (para borrarlo de Cloudinary)
-        // b) Su user (el dueño, para desvincularlo del perfil)
+        // 1. Buscar documento
         const docFound = await dbGetDocumentById(id);
+        if (!docFound) return res.status(404).json({ msg: "Documento no encontrado" });
 
-        if (!docFound) {
-            return res.status(404).json({ msg: "Documento no encontrado para eliminar" });
-        }
+        // 2. BORRAR ARCHIVO FÍSICO (Usando el Servicio Maestro)
+        // Pasamos: ID, Proveedor y la Carpeta donde lo guardamos al crear
+        await srvDeleteCompanyFile(
+            docFound.publicId, 
+            docFound.storageProvider, 
+            'delfos-user-docs' // <--- OJO: Debe ser la misma carpeta del create
+        );
 
-        // 2. BORRAR DE CLOUDINARY ☁️
-        // Si tiene un publicId guardado, le decimos a Cloudinary que lo destruya
-        if (docFound.publicId) {
-            console.log(`🔥 Intentando borrar de Cloudinary: ${docFound.publicId}`); // <--- AGREGA ESTO
-            try {
-                const result = await cloudinary.uploader.destroy(docFound.publicId);
-                console.log("✅ Resultado Cloudinary:", result); // <--- Y ESTO
-            } catch (cloudError) {
-                console.error("Error borrando de Cloudinary:", cloudError);
-            }
-        } else {
-            console.log("⚠️ El documento NO tenía publicId guardado. Se saltó el borrado en Nube.");
-        }
-
-        // 3. AHORA SÍ, BORRAR DE MONGODB 🗄️
+        // 3. BORRAR DE BD
         const documentDeleted = await dbDeleteDocumentById(id);
 
-        // 4. DESVINCULAR DEL USUARIO OPERATIVO (LIMPIEZA) 🧹
-        // Usamos $pull para "arrancar" el ID de ese documento del array del usuario.
+        // 4. DESVINCULAR DE USUARIO
         if (docFound.user) {
             await OperationalUser.findOneAndUpdate(
-                { user: docFound.user }, // Buscamos al dueño del documento
-                { $pull: { documents: docFound._id } } // Sacamos ESTE documento de su lista
+                { user: docFound.user },
+                { $pull: { documents: docFound._id } }
             );
         }
 
         res.json({
-            msg: "Documento eliminado correctamente (Nube, Base de Datos y Perfil Usuario)",
-            data: documentDeleted
+            msg: "Documento eliminado correctamente (Físico y BD)",
+            deletedId: id
         });
 
     } catch (error) {

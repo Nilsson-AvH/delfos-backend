@@ -21,6 +21,7 @@ const authenticationUser = (req, res, next) => {
         // Paso 4: Enviar a traves del Request los datos del payload
         req.payload = payload;
         req.userId = payload.id; // Alias útil
+        req.role = payload.role;
 
         // Paso 5: Continuar
         next();

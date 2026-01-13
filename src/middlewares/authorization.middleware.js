@@ -1,5 +1,4 @@
 const authorizationUser = (req, res, next) => {
-
     // 1. Obtenemos el rol del usuario (que vino del authentication middleware)
     const { role } = req.payload;
 

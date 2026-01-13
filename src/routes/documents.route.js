@@ -10,15 +10,18 @@ import {
 import authenticationUser from "../middlewares/authentication.middleware.js";
 import authorizationUser from "../middlewares/authorization.middleware.js";
 // 1. IMPORTAR EL MIDDLEWARE DE LA NUBE CLOUDINARY ☁️
-import uploadCloud from "../config/cloudinary.config.js";
+// import uploadCloud from "../config/cloudinary.config.js";
+import multer from "multer";
 
 const router = Router();
+const upload = multer(); // <--- Storage en Memoria RAM
+
 
 // Rutas base: /api/v1/documents
 
 // 2. CLOUDINARY: INYECTARLO EN EL POST
 // 'file' es la llave que usaremos en Postman
-router.post(`/`, [authenticationUser, authorizationUser, uploadCloud.single('file')], createDocument); //http://localhost:3000/api/v1/documents
+router.post(`/`, [authenticationUser, authorizationUser, upload.single('file')], createDocument); //http://localhost:3000/api/v1/documents
 
 // Listar Documentos
 router.get(`/`, [authenticationUser, authorizationUser], getAllDocuments); //http://localhost:3000/api/v1/documents
