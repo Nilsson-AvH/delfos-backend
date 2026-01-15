@@ -7,34 +7,42 @@ import Contract from '../models/Contract.model.js';
 import User from '../models/users/User.model.js';
 
 // =====================================================================
+// HELPER: Capturar Trazabilidad (IP y Dispositivo) 🕵️‍♂️
+// =====================================================================
+const getTraceabilityInfo = (req) => {
+    return {
+        ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || 'Unknown IP',
+        userAgent: req.get('User-Agent') || 'Unknown Device'
+    };
+};
+
+// =====================================================================
 // POST: Generar Contrato PDF
 // =====================================================================
 const generateContractPDF = async (req, res) => {
     try {
-        // Recibimos IDs. El contrato ya debe existir en BD (creado previamente)
         const { userId, contractId } = req.body;
 
-        // 1. Buscar la Info Real (Data)
         const user = await User.findById(userId);
         const contract = await Contract.findById(contractId);
 
         if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
         if (!contract) return res.status(404).json({ msg: "Contrato no encontrado (Crea primero el registro de datos)" });
 
-        // 2. Llamar al Motor Generador
-        // Usamos req.userId que es lo que guarda tu authentication.middleware.js
         const adminId = req.userId;
+        
+        // 👇 1. Capturamos la evidencia
+        const reqInfo = getTraceabilityInfo(req);
 
-        const generatedDoc = await srvGenerateContract(user, contract, adminId);
+        // 👇 2. La pasamos al servicio
+        const generatedDoc = await srvGenerateContract(user, contract, adminId, reqInfo);
 
-        // 3. Actualizar el modelo Contract con el link del PDF
-        // Así cerramos el círculo: El contrato de Data apunta al contrato de Papel.
         contract.attachedDocument = generatedDoc._id;
         await contract.save();
 
         res.status(201).json({
             msg: "Contrato generado exitosamente",
-            url: generatedDoc.fileUrl, // Devolvemos el link directo para que lo veas
+            url: generatedDoc.fileUrl,
             document: generatedDoc
         });
 
@@ -49,15 +57,16 @@ const generateContractPDF = async (req, res) => {
 // =====================================================================
 const generateLaborCertificatePDF = async (req, res) => {
     try {
-        const { userId } = req.body; // Solo necesitamos el ID del usuario
+        const { userId } = req.body;
 
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-        // Usamos req.userId (del middleware) como el generador
         const adminId = req.userId;
+        const reqInfo = getTraceabilityInfo(req); // <--- Captura
 
-        const generatedDoc = await srvGenerateCertificate(user, adminId);
+        // Pasamos reqInfo al servicio
+        const generatedDoc = await srvGenerateCertificate(user, adminId, reqInfo);
 
         res.status(201).json({
             msg: "Certificación generada exitosamente",
@@ -76,14 +85,16 @@ const generateLaborCertificatePDF = async (req, res) => {
 // =====================================================================
 const generateCarnetPDF = async (req, res) => {
     try {
-        const { userId } = req.body; // Solo necesitamos el ID del usuario
+        const { userId } = req.body;
 
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-        const adminId = req.userId; // Quien hace la petición
+        const adminId = req.userId;
+        const reqInfo = getTraceabilityInfo(req); // <--- Captura
 
-        const generatedDoc = await srvGenerateCarnet(user, adminId);
+        // Pasamos reqInfo
+        const generatedDoc = await srvGenerateCarnet(user, adminId, reqInfo);
 
         res.status(201).json({
             msg: "Carnet generado exitosamente",
@@ -102,29 +113,20 @@ const generateCarnetPDF = async (req, res) => {
 // =====================================================================
 const generatePresentationLetterPDF = async (req, res) => {
     try {
-        // Recibimos userId y la fecha manual de inicio
         const { userId, startDate } = req.body; 
 
-        // Validaciones básicas de entrada
-        if (!userId) {
-            return res.status(400).json({ msg: "El userId es obligatorio." });
-        }
-        if (!startDate) {
-            return res.status(400).json({ msg: "La fecha de inicio (startDate) es obligatoria (Formato: DD/MM/YYYY)." });
-        }
+        if (!userId) return res.status(400).json({ msg: "El userId es obligatorio." });
+        if (!startDate) return res.status(400).json({ msg: "La fecha de inicio (startDate) es obligatoria." });
 
-        // Buscar usuario base
         const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ msg: "Usuario no encontrado en la base de datos." });
-        }
+        if (!user) return res.status(404).json({ msg: "Usuario no encontrado." });
 
-        const adminId = req.userId; // ID del administrador que genera el documento (viene del token)
+        const adminId = req.userId;
+        const reqInfo = getTraceabilityInfo(req); // <--- Captura
 
-        // Llamar al servicio con los datos manuales empaquetados
-        const generatedDoc = await srvGeneratePresentationLetter(user, { startDate }, adminId);
+        // Pasamos reqInfo
+        const generatedDoc = await srvGeneratePresentationLetter(user, { startDate }, adminId, reqInfo);
 
-        // Respuesta exitosa
         res.status(201).json({
             msg: "Carta de presentación generada exitosamente",
             url: generatedDoc.fileUrl,
@@ -133,12 +135,9 @@ const generatePresentationLetterPDF = async (req, res) => {
 
     } catch (error) {
         console.error("❌ Error generando carta de presentación:", error);
-        
-        // Manejo de errores específicos del negocio
         if (error.message.includes("no tiene un Cliente asignado")) {
             return res.status(400).json({ msg: "El usuario operativo no tiene un cliente asignado actualmente." });
         }
-
         res.status(500).json({ msg: "Error interno generando el documento", error: error.message });
     }
 };
@@ -148,4 +147,4 @@ export {
     generateLaborCertificatePDF,
     generateCarnetPDF,
     generatePresentationLetterPDF
-}
+};

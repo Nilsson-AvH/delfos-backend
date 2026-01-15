@@ -27,7 +27,24 @@ const AdministrativeUserSchema = new Schema({
         required: true
         // NOTA: La contraseña debe ser encriptada (Hashed) antes de guardarse
         // usando bcrypt o argon2 en el controlador o middleware 'pre-save'.
-    }
+    },
+
+    // 👇👇👇 NUEVOS CAMPOS PARA FIRMANTES 👇👇👇
+    
+    // 1. Cargo dentro de la empresa (Ej: "Coordinador de Operaciones", "Analista de RRHH")
+        jobTitle: { 
+        type: String, 
+        trim: true,
+        uppercase: true,
+        default: "ADMINISTRATIVO" 
+    },
+
+    // 2. Firma Digital Personal (Imagen PNG transparente)
+        signatureUrl: { type: String }, // URL de la firma
+        signaturePublicId: { type: String, select: false }, // ID para borrar/actualizar la firma
+        signatureStorageProvider: { type: String, default: 'local', select: false }, // Proveedor de almacenamiento
+
+    // 👆👆👆 --------------------------------- 👆👆👆
 
 }, {
     timestamps: true, // Registra cuándo se creó o modificó el acceso administrativo

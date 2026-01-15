@@ -64,7 +64,29 @@ const CompanyDocumentSchema = new Schema({
     generatedBy: { // Quién ordenó la creación (Admin ID)
         type: Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
+
+    // 👇👇👇 5. SEGURIDAD Y VERIFICACIÓN 👇👇👇
+    
+    // Huella Digital (SHA-256) para garantizar integridad
+    securityHash: { 
+        type: String, 
+        index: true 
+    }, 
+    
+    // Código Único de Documento (Para imprimir y validar)
+    cud: { 
+        type: String, 
+        index: true, 
+        unique: true, 
+        sparse: true // Permite que documentos viejos no tengan CUD sin romper la base
+    }, 
+    
+    // Trazabilidad extra (Opcional, pero recomendada)
+    signedAtIP: { type: String }, 
+    userAgent: { type: String }
+
+    // 👆👆👆 ------------------------------------------- 👆👆👆
 
 }, {
     timestamps: true,

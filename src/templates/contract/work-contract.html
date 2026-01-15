@@ -150,6 +150,15 @@
             color: #888;
             margin-top: 15px;
         }
+
+        .security-footer {
+            margin-top: 20px;
+            font-size: 8pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            line-height: 1.1;
+            z-index: 100;
+        }
     </style>
 </head>
 
@@ -390,8 +399,10 @@
         </div>
     </div>
 
-    <div class="small-note">
-        Generado electrónicamente por Plataforma Delfos - {{currentDate}}
+    <div class="security-footer">
+        <strong>DOCUMENTO FIRMADO DIGITALMENTE</strong><br>
+        CUD: {{cud}} | Hash SHA-256: {{securityHash}} <br>
+        Fecha de Generación: {{generationDate}}
     </div>
 
 </body>

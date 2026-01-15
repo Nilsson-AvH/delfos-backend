@@ -25,7 +25,7 @@
         body {
             font-family: 'Arial', sans-serif;
             font-size: 12pt;
-            line-height: 2.0;
+            line-height: 1.5;
             color: #000;
             text-align: justify;
             position: relative;
@@ -81,31 +81,51 @@
 
         /* FIRMA */
         .signature-section {
-            margin-top: 120px;
+            margin-top: 20px;
+            /* Espacio para la firma */
         }
 
-        .signature-line {
-            width: 250px;
-            border-top: 1px solid #000;
-            margin-bottom: 5px;
+        .signature-img {
+            height: 80px;
+            /* Ajusta según el tamaño real de tu firma */
+            display: block;
+            margin-bottom: 0px;
+            margin-left: -10px;
+            /* Pequeño ajuste visual a la izquierda */
         }
 
-        .signer-name {
+        .manual-signature-space {
+            height: 80px;
+            /* Misma altura que la imagen para consistencia */
+            display: block;
+        }
+
+        .signer-company-name {
+            font-size: 8pt;
             font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11pt;
         }
 
-        .signer-role {
-            font-style: italic;
-            font-size: 11pt;
-        }
+        .security-footer {
+            position: fixed;
+            /* Esto lo saca del flujo y lo pega a la hoja */
+            bottom: 112px;
+            /* Distancia EXACTA del borde inferior */
+            left: 3cm;
+            /* Alineado con tu margen izquierdo (definido en body) */
+            right: 3cm;
+            /* Alineado con tu margen derecho */
 
-        .small-note {
-            text-align: center;
-            font-size: 7pt;
-            color: #888;
-            margin-top: 15px;
+            /* Estilos visuales */
+            border-top: 1px solid #ccc;
+            padding-top: 0px;
+            font-size: 8pt;
+            color: #666;
+            font-family: monospace;
+            /* background-color: white; */
+            /* Evita que si el texto es largo se vea transparente detrás */
+            z-index: 100;
+            /* Asegura que quede encima de cualquier imagen de fondo si es necesario */
+            line-height: 1.1;
         }
     </style>
 </head>
@@ -136,12 +156,24 @@
     </div>
 
     <div class="signature-section">
-        <br><br>
-        <div class="signature-line"></div>
-        <div class="signer-name">{{signerName}}</div>
-        <div class="signer-role">{{signerRole}}</div>
+        <p>Atentamente,</p>
+
+        {{#if signatureImage}}
+        <img src="{{signatureImage}}" class="signature-img">
+        {{else}}
+        <div class="manual-signature-space"></div>
+        {{/if}}
+
+        <div><strong>{{signerName}}</strong></div>
+        <div>{{signerRole}}</div>
+        <div class="signer-company-name">{{companyName}}</div>
     </div>
-    <br>
+
+    <div class="security-footer">
+        <strong>DOCUMENTO FIRMADO DIGITALMENTE</strong><br>
+        CUD: {{cud}} | Hash SHA-256: {{securityHash}} <br>
+        Fecha de Generación: {{generationDate}}
+    </div>
 
 </body>
 

@@ -63,15 +63,27 @@ const dbRegisterClientManagerUser = async (newUser) => {
  * @returns {Array} Array de usuarios filtrados.
  */
 const dbGetAllUsers = async (queryFilters = {}, requesterRole) => {
-    // 1. Obtenemos la lista negra
+    // 1. Obtenemos la lista negra (Roles que NO puede ver)
     const excludedRoles = getExcludedRoles(requesterRole);
 
-    // 2. Construimos la query final
-    // Mantenemos los filtros que ya existían y agregamos la regla de seguridad ($nin)
-    const finalQuery = {
-        ...queryFilters,
-        role: { $nin: excludedRoles }
-    };
+    // 2. Clonamos los filtros para manipularlos sin afectar el original
+    const finalQuery = { ...queryFilters };
+
+    // 3. LÓGICA DE FUSIÓN INTELIGENTE (Fix del Bug) 🧠
+    if (finalQuery.role) {
+        // CASO A: El usuario pidió un rol específico (ej: ?role=registered)
+        // Usamos $and para obligar a que se cumplan AMBAS condiciones.
+        finalQuery.$and = [
+            { role: finalQuery.role },       // Condición 1: Lo que el usuario pide
+            { role: { $nin: excludedRoles } } // Condición 2: Seguridad (Lista negra)
+        ];
+        
+        // Importante: Borramos la propiedad 'role' simple para que no estorbe
+        delete finalQuery.role; 
+    } else {
+        // CASO B: No pidió rol específico, simplemente excluimos los prohibidos
+        finalQuery.role = { $nin: excludedRoles };
+    }
 
     return await userModel.find(finalQuery);
 };

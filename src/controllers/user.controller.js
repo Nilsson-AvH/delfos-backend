@@ -212,6 +212,7 @@ async function createClientManagerProfile(data) {
 // =====================================================================
 // CONSULTAR TODOS LOS USUARIOS (ACTUALIZADO CON VISIBILIDAD)
 // =====================================================================
+
 const getAllUsers = async (req, res) => {
     try {
         const { role, status } = req.query;
@@ -219,6 +220,7 @@ const getAllUsers = async (req, res) => {
 
         // --- Armar el filtro básico ---
         const query = {};
+        
         if (role) query.role = role;
         if (status) query.status = status;
 
@@ -226,8 +228,10 @@ const getAllUsers = async (req, res) => {
         // porque el servicio (dbGetAllUsers) va a filtrar automáticamente 
         // lo que este rol no puede ver gracias al helper.
 
-        // Llamamos al servicio pasando los filtros Y el rol del solicitante
-        const users = await dbGetAllUsers(query, requesterRole);
+        // // Llamamos al servicio pasando los filtros Y el rol del solicitante
+        const users = await dbGetAllUsers(
+            query, requesterRole
+        );
 
         res.json(users);
 
@@ -235,7 +239,7 @@ const getAllUsers = async (req, res) => {
         console.error(error);
         res.status(500).json({ msg: "Error al obtener usuarios", error });
     }
-};
+};  
 
 // =====================================================================
 // CONSULTAR USUARIO POR ID (ACTUALIZADO CON VISIBILIDAD)

@@ -95,14 +95,38 @@
             /* Pequeño ajuste visual a la izquierda */
         }
 
-        .signer-name {
-            font-weight: bold;
-            text-transform: uppercase;
+        .manual-signature-space {
+            height: 80px;
+            /* Misma altura que la imagen para consistencia */
+            display: block;
         }
 
-        .signer-role {
-            font-style: italic;
-            /* O normal, según prefieras */
+        .signer-company-name {
+            font-size: 8pt;
+            font-weight: bold;
+        }
+
+        .security-footer {
+            position: fixed;
+            /* Esto lo saca del flujo y lo pega a la hoja */
+            bottom: 112px;
+            /* Distancia EXACTA del borde inferior */
+            left: 3cm;
+            /* Alineado con tu margen izquierdo (definido en body) */
+            right: 3cm;
+            /* Alineado con tu margen derecho */
+
+            /* Estilos visuales */
+            border-top: 1px solid #ccc;
+            padding-top: 0px;
+            font-size: 8pt;
+            color: #666;
+            font-family: monospace;
+            /* background-color: white; */
+            /* Evita que si el texto es largo se vea transparente detrás */
+            z-index: 100;
+            /* Asegura que quede encima de cualquier imagen de fondo si es necesario */
+            line-height: 1.1;
         }
     </style>
 </head>
@@ -142,21 +166,28 @@
         <p>
             Agradecemos de antemano su atención y quedamos atentos a cualquier solicitud o inquietud.
         </p>
-        <br>
-        <br>
-        <br>
-        <p>Cordialmente,</p>
-    </div>
 
-    <div class="signature-section">
-        {{#if signatureImage}}
-        <img src="{{signatureImage}}" class="signature-img" alt="Firma">
-        {{/if}}
+        <br>
 
-        <div class="signer-name">MARIA ELSA RIVILLAS V</div>
-        <div class="signer-role">Directora Talento Humano</div>
-        <div>Seguridad Delfos Ltda.</div>
-    </div>
+        <div class="signature-section">
+            <p>Atentamente,</p>
+
+            {{#if signatureImage}}
+            <img src="{{signatureImage}}" class="signature-img">
+            {{else}}
+            <div class="manual-signature-space"></div>
+            {{/if}}
+
+            <div><strong>{{signerName}}</strong></div>
+            <div>{{signerRole}}</div>
+            <div class="signer-company-name">{{companyName}}</div>
+        </div>
+
+        <div class="security-footer">
+            <strong>DOCUMENTO FIRMADO DIGITALMENTE</strong><br>
+            CUD: {{cud}} | Hash SHA-256: {{securityHash}} <br>
+            Fecha de Generación: {{generationDate}}
+        </div>
 
 </body>
 

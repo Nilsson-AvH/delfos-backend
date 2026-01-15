@@ -4,6 +4,7 @@ import dbConnection from "./config/mongo.config.js";
 
 // 1. IMPORTAR RUTAS
 import authRoute from "./routes/auth.route.js";
+import publicRoutes from "./routes/public.routes.js";
 import usersRoute from "./routes/users/users.route.js";
 import documentsRoute from "./routes/documents.route.js";
 import clientsRoute from "./routes/clients.route.js";
@@ -29,8 +30,8 @@ dbConnection();
 //Middlewares express
 app.use(express.json()); //Middleware para parsear el body de la peticion JSON (Ejemplo matrix trinity helicopter)
 
-// 👇 HABILITAR CARPETA PÚBLICA (LOCAL STORAGE) 👇
-// Esto permite acceder a: http://localhost:3001/uploads/mi-archivo.pdf
+// HABILITAR CARPETA PÚBLICA (LOCAL STORAGE) PARA VER LOS DOCUMENTOS EN EL NAVEGADOR
+// Esto permite acceder a: http://localhost:3000/uploads/mi-archivo.pdf
 app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
 // =====================================================================
@@ -40,12 +41,15 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')
 app.get(`/health`, (req, res) => {
     res.json([
         { message: "Server Health is running" },
-        { message: "System: Security Delfos SaaS" }
+        { message: "System: Delfos SaaS" }
     ]);
 });
 
 // El Login debe ser público, si no, nadie podría entrar para validar su licencia.
 app.use(`/api/v1/auth`, authRoute);
+
+// Ruta de Validación Pública de Documentos por CUD
+app.use('/api/public', publicRoutes);
 
 
 // =====================================================================
@@ -57,10 +61,11 @@ app.use(`/api/v1/auth`, authRoute);
 
 app.use('/api/v1', authenticationUser, validateLicenseStatus);
 
+
 // NOTA TÉCNICA:
 // Aunque tus rutas individuales (ej: users.route.js) ya tienen 'authenticationUser' dentro,
 // ponerlo aquí arriba es necesario para que 'validateLicenseStatus' tenga acceso a 'req.role'.
-// No te preocupes, Express maneja esto bien; simplemente valida el token dos veces (milisegundos),
+// Relax que Express maneja esto bien; simplemente valida el token dos veces (milisegundos),
 // pero te ahorra tener que reescribir todos tus archivos de rutas.
 
 
