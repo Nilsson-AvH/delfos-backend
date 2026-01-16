@@ -293,8 +293,17 @@ const srvGenerateCertificate = async (userBase, adminId, reqInfo = {}) => {
 // SERVICIO 03: CARNET CORPORATIVO (SIN HASH VISIBLE) 🪪
 // =====================================================================
 const srvGenerateCarnet = async (userBase, adminId, reqInfo = {}) => {
-    // El carnet no lleva Hash visible por espacio, ni firma dinámica usualmente.
+
     const companyConfig = await dbGetCompanyConfig();
+
+    // 1. GENERAR SEGURIDAD (HASH + CUD)
+    const { securityHash, cud } = generateSecurityMetadata({
+        docType: 'CARNET_CORPORATIVO',
+        companyNit: companyConfig.nit,
+        employeeId: userBase.nuip,
+        timestamp: new Date().toISOString()
+    });
+
     const operationalProfile = await OperationalUser.findOne({ user: userBase._id }).populate('currentContract');
     if (!operationalProfile) throw new Error("Perfil operativo incompleto.");
     
@@ -305,6 +314,9 @@ const srvGenerateCarnet = async (userBase, adminId, reqInfo = {}) => {
     const userPhotoBase64 = await fetchImageToBase64(userPhotoUrl);
     
     const templateData = {
+        // Seguridad
+        securityHash, cud, generationDate: moment().format('DD/MM/YYYY HH:mm:ss'),
+
         bgFront: bgFrontBase64, bgBack: bgBackBase64, qrImage: qrBase64, userPhoto: userPhotoBase64,
         surnames: `${userBase.lastName} ${userBase.secondLastName || ''}`.toUpperCase(),
         names: userBase.names.toUpperCase(),
@@ -325,9 +337,10 @@ const srvGenerateCarnet = async (userBase, adminId, reqInfo = {}) => {
         storageProvider: storageResult.provider,
         referenceId: operationalProfile._id,
         generatedBy: adminId,
+        securityHash,
+        cud,
         signedAtIP: reqInfo.ip,
         userAgent: reqInfo.userAgent
-        // Sin hash/cud
     });
 };
 

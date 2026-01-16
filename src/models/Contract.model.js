@@ -14,7 +14,7 @@ const ContractSchema = new Schema({
     // ----------------------------------------------------------------
     contractContent: {
         type: String, // Puede ser texto plano, HTML o ID de plantilla
-        required: [true, 'El contenido contractual es obligatorio.'],
+        required: [true, 'Cargo actual del empleado es obligatorio.'],
         default: ''
     },
     contractValue: {

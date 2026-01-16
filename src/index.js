@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from "express";
+import cors from "cors";
 import dbConnection from "./config/mongo.config.js";
 
 // 1. IMPORTAR RUTAS
@@ -29,6 +30,8 @@ dbConnection();
 
 //Middlewares express
 app.use(express.json()); //Middleware para parsear el body de la peticion JSON (Ejemplo matrix trinity helicopter)
+
+app.use(cors()); //Middleware para permitir peticiones desde cualquier origen
 
 // HABILITAR CARPETA PÚBLICA (LOCAL STORAGE) PARA VER LOS DOCUMENTOS EN EL NAVEGADOR
 // Esto permite acceder a: http://localhost:3000/uploads/mi-archivo.pdf
