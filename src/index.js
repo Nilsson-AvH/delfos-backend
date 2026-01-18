@@ -62,8 +62,9 @@ app.use('/api/public', publicRoutes);
 // 1. authenticationUser: Decodifica el token y nos dice si es 'root', 'admin', etc.
 // 2. validateLicenseStatus: Revisa si pagaron o si es 'root' para dejar escribir.
 
-app.use('/api/v1', authenticationUser, validateLicenseStatus);
-
+//TODO: <> DESCOMENTAR APP.USE CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
+// app.use('/api/v1', authenticationUser, validateLicenseStatus);
+//TODO: </> DESCOMENTAR APP.USE CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
 
 // NOTA TÉCNICA:
 // Aunque tus rutas individuales (ej: users.route.js) ya tienen 'authenticationUser' dentro,

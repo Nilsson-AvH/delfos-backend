@@ -31,8 +31,15 @@ router.patch('/operational/:id/renew-contract', [authenticationUser, authorizati
 router.patch('/operational/:id/update-ss', [authenticationUser, authorizationUser], updateSocialSecurity);
 
 // 2. RUTAS GENÉRICAS (CRUD Básico de Usuario)
-router.post(`/`, [authenticationUser, authorizationUser], createUser);
-router.get(`/`, [authenticationUser, authorizationUser], getAllUsers);
+//TODO: <> COMENTAR ROUTER.POST SIN MIDDLEWARES Y DESCOMENTAR ROUTER.GET CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
+router.post(`/`, createUser);
+// router.post(`/`, [authenticationUser, authorizationUser], createUser);
+//TODO: </> COMENTAR ROUTER.POST SIN MIDDLEWARES Y DESCOMENTAR ROUTER.GET CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
+
+//TODO: <> COMENTAR ROUTER.GET SIN MIDDLEWARES Y DESCOMENTAR ROUTER.GET CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
+router.get(`/`, getAllUsers);
+// router.get(`/`, [authenticationUser, authorizationUser], getAllUsers);
+//TODO: </> COMENTAR ROUTER.GET SIN MIDDLEWARES Y DESCOMENTAR ROUTER.GET CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
 router.get(`/:idUser`, [authenticationUser, authorizationUser], getUserById);       // :idUser captura cualquier cosa
 router.patch(`/:idUser`, [authenticationUser, authorizationUser], updateUserById);
 router.delete(`/:idUser`, [authenticationUser, authorizationUser], deleteUserById);
