@@ -1,0 +1,25 @@
+meta {
+  name: Delete Signature Adm User Copy
+  type: http
+  seq: 9
+}
+
+delete {
+  url: http://localhost:3000/api/v1/auth/signature
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NjgwYTk2NTZkZWM1MzM3YzRjM2Y5YSIsIm5hbWUiOiJOaWxzb24iLCJlbWFpbCI6InN1cGVyYWRtaW40QGRlbGZvcy5jb20iLCJyb2xlIjoic3VwZXJhZG1pbiIsImlhdCI6MTc2ODQ5OTY4MCwiZXhwIjoxNzY4NTI4NDgwfQ.IDjXC2e3Grmpr4WUycEl3vMDXdfQrTg__UXOn5oCij8
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+}

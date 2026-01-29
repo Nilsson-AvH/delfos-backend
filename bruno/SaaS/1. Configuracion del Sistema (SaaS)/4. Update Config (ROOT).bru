@@ -1,0 +1,33 @@
+meta {
+  name: 4. Update Config (ROOT)
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:3000/api/v1/system-company
+  body: json
+  auth: inherit
+}
+
+params:query {
+  ~: 
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODI0OTUxMiwiZXhwIjoxNzY4Mjc4MzEyfQ.vtei7KM4Xh-x7kP9pkvtHaqQRqMbRyfOTV6jfjX_yis
+}
+
+body:json {
+  {
+      "planType": "demo_trial",
+      "subscriptionStatus": "active",
+      "validUntil": "2026-02-11T23:59:59.000Z", // Un año completo
+      "maxBranchesAllowed": 1,
+      "maxUsersAllowed": 5
+  }
+}
+
+settings {
+  encodeUrl: true
+}

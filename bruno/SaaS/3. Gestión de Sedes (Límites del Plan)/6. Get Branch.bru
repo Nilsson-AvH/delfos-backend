@@ -1,0 +1,19 @@
+meta {
+  name: 6. Get Branch
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:3000/api/v1/system-branches
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODI0ODk0MiwiZXhwIjoxNzY4Mjc3NzQyfQ.uhnsSsKsTtgebTpF2V9C2A2GAPnsKN1aAYR1Gd-XDxc
+}
+
+settings {
+  encodeUrl: true
+}

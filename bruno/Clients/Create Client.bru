@@ -1,0 +1,31 @@
+meta {
+  name: Create Client
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/api/v1/clients/
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW4yQGRlbGZvcy5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjY3NzIxNzksImV4cCI6MTc2NjgwMDk3OX0.EmwX0hlxfHqIHk_KTgK0pTKa414scVKmMQr9ozBstF4
+}
+
+body:json {
+  {
+    "nit": "900.056.234-2",
+    "companyName": "Agrupacion Pastrana",
+    "address": "Carrera 23 # 34 SUR-20",
+    "phone": "6018736634",
+    "companyEmail": "apastrana@gmail.com",
+    
+    "clientManager": "694de3e62926f2eb49fe4228" 
+  }
+}
+
+settings {
+  encodeUrl: true
+}

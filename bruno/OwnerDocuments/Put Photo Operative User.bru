@@ -1,0 +1,30 @@
+meta {
+  name: Put Photo Operative User
+  type: http
+  seq: 7
+}
+
+put {
+  url: http://localhost:3000/api/v1/users/photo
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkZjA1MjkyNmYyZWI0OWZlNDIxNSIsIm5hbWUiOiJFZHdhcmQgRmVybmFuZG8iLCJlbWFpbCI6InN1cGVyYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJzdXBlcmFkbWluIiwiaWF0IjoxNzY3ODA3NTczLCJleHAiOjE3Njc4MzYzNzN9.wMSXyLIIQYlBjexrzP6mLRgQ5356sDGnJbTza31mfg8
+}
+
+body:multipart-form {
+  userId: 694ecdea10e720016df342e7
+  photo: @file(/D:/Users/NilssonAvH/Study/BIT/Project-delfos/backend/src/assets/images/employee-photo.jpg)
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+}

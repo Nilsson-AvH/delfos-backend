@@ -1,0 +1,31 @@
+meta {
+  name: 4. Update Storage (ROOT)
+  type: http
+  seq: 5
+}
+
+put {
+  url: http://localhost:3000/api/v1/system-company
+  body: json
+  auth: inherit
+}
+
+params:query {
+  ~: 
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODMyOTEyNSwiZXhwIjoxNzY4MzU3OTI1fQ.SloIjro7XdGYNgeEVyWBqten_6RCKfgI0LEZPRwXqIc
+}
+
+body:json {
+  {
+      //"storageProvider": "cloudinary"
+      "storageProvider": "local",
+      "backendUrl": "http://localhost:3000" 
+  }
+}
+
+settings {
+  encodeUrl: true
+}

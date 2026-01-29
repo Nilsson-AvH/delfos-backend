@@ -1,0 +1,39 @@
+meta {
+  name: Create Administrative User
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/api/v1/users
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGYwOGE1ODhkZGJlNWRmOWJiMjQ4ZCIsIm5hbWUiOiJFbnJpY28gRmVybmkiLCJlbWFpbCI6ImF1ZGl0b3JAZGVsZm9zLmNvbSIsInJvbGUiOiJhdWRpdG9yIiwiaWF0IjoxNzY2Nzg3NDcxLCJleHAiOjE3NjY4MTYyNzF9.M8HjZC-Lj8oHP24oV5bujZ6Rr2wU_Fd5mE8rGjKctmw
+}
+
+body:json {
+  {
+    "role": "superadmin", 
+    "nuip": "1045452669",
+    "names": "Cristian Camilo",
+    "lastName": "Vasquez",
+    "secondLastName": "Cardona",
+    "email": "superadmin2@delfos.com",
+    
+    "password": "123456789",
+    "status": "active"
+  }
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+}

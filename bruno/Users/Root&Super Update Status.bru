@@ -1,0 +1,26 @@
+meta {
+  name: Root&Super Update Status
+  type: http
+  seq: 7
+}
+
+patch {
+  url: http://localhost:3000/api/v1/users/69680a9656dec5337c4c3f9a
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODQyMDU3NSwiZXhwIjoxNzY4NDQ5Mzc1fQ.790I0BUieUb2p1uX7tZ0dk0lPxTQWFhquKXadI5gG0s
+}
+
+body:json {
+  {
+      "role": "superadmin",
+      "status": "active"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

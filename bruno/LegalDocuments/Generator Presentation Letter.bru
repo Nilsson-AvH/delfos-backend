@@ -1,0 +1,26 @@
+meta {
+  name: Generator Presentation Letter
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:3000/api/v1/generator/presentation-letter
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NjgwYTk2NTZkZWM1MzM3YzRjM2Y5YSIsIm5hbWUiOiJOaWxzb24iLCJlbWFpbCI6InN1cGVyYWRtaW40QGRlbGZvcy5jb20iLCJyb2xlIjoic3VwZXJhZG1pbiIsImlhdCI6MTc2ODUwMjAyOSwiZXhwIjoxNzY4NTMwODI5fQ.BsRxoYQbpS9ggSEwpcpihv7Ezs0_zFc3EhYzG8Zejg4
+}
+
+body:json {
+  {
+      "userId": "694ecdea10e720016df342e7",
+      "startDate": "10/01/2026"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,25 @@
+meta {
+  name: Generator Carnet
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/v1/generator/carnet
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODU4NTUxOCwiZXhwIjoxNzY4NjE0MzE4fQ.VDPogmgG8mt4cHeKlUBRmkY3sbhj45snt3N6WawPCPg
+}
+
+body:json {
+  {
+    "userId": "694ecdea10e720016df342e7"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

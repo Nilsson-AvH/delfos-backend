@@ -1,0 +1,46 @@
+meta {
+  name: Create ClientManager User
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/v1/users
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODI0NjYwMywiZXhwIjoxNzY4Mjc1NDAzfQ.nnMvbJbSVNIk2PWhsbvBo5xEqKB-xxTdATzjQlToV58
+}
+
+body:json {
+  {
+    "role": "clientManager",
+    "nuip": "7648579076545675",
+    "names": "Camila Andrea",
+    "lastName": "Lopez",
+    "secondLastName": "Osorio",
+    "email": "clientManager1@delfos.com",
+    "status": "active",
+    
+    // Datos específicos del perfil Client Manager
+    "birthDate": "1990-01-01",
+    "birthPlace": "Bogotá",
+    "issueDate": "2008-01-01",
+    "issuePlace": "Bogotá",
+    "nationality": "Colombiano",
+    "phones": ["3001112233"],
+    "address": "Calle Falsa 123"
+  }
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+}

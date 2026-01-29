@@ -143,3 +143,14 @@ vite.config.ts.timestamp-*
 # Owner files
 Attachments/
 public/
+
+# Archivos de configuración de entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Otros archivos a ignorar
+.DS_Store
+Desktop.ini

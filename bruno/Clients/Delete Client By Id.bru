@@ -1,0 +1,15 @@
+meta {
+  name: Delete Client By Id
+  type: http
+  seq: 6
+}
+
+delete {
+  url: http://localhost:3000/api/v1/clients/694218d9cebe35d47f87e148
+  body: json
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

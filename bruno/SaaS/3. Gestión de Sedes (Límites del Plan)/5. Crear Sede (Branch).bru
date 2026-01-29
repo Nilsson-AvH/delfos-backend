@@ -1,0 +1,31 @@
+meta {
+  name: 5. Crear Sede (Branch)
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/api/v1/system-branches
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODI0ODk0MiwiZXhwIjoxNzY4Mjc3NzQyfQ.uhnsSsKsTtgebTpF2V9C2A2GAPnsKN1aAYR1Gd-XDxc
+}
+
+body:json {
+  {
+      "name": "SEDE CALI",
+      "department": "CAUCA",
+      "city": "CALI",
+      "address": "CLL 21 74 85",
+      "phones": ["6093364545"],
+      "email": "delfos.cali@hotmail.com",
+      "contactPerson": "Juan Mantilla"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

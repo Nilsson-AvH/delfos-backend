@@ -1,0 +1,135 @@
+meta {
+  name: Create Operative User
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/api/v1/users
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVkNDNiMTBlNzIwMDE2ZGYzNDMxZCIsIm5hbWUiOiJFbnJpY28iLCJlbWFpbCI6ImF1ZGl0b3JAZGVsZm9zLmNvbSIsInJvbGUiOiJhdWRpdG9yIiwiaWF0IjoxNzY2Nzc0MTQ5LCJleHAiOjE3NjY4MDI5NDl9.WVw5otkyzeBJ_hrIcyu7CZ_3oHxtgpRdkR_ztCUjZUU
+}
+
+body:json {
+  {
+    "role": "operational",
+    "nuip": "1008765732",
+    "names": "María Alejandra",
+    "lastName": "Rodríguez",
+    "secondLastName": "López",
+    "email": "maria.seguridad@security.com",
+  
+    // 1. Asignación al Puesto (IMPORTANTE: Usa un ID de Cliente real de tu BD)
+    "clientId": "694de4312926f2eb49fe422b",
+  
+    // 2. Contrato Inicial
+    "contractContent": "Contrato Indefinido - Supervisora de Puesto",
+    "contractValue": 1800000,
+    "contractTermMonths": 12,
+    "startDate": "2025-02-01",
+    "endDate": "2026-02-01",
+  
+    // 3. Seguridad Social (Parafiscales)
+    "arl": "Sura",
+    "arlRisk": "R3",
+    "arlDate": "2025-02-01",
+    "eps": "Compensar",
+    "epsDate": "2025-02-01",
+    "compensationFund": "Colsubsidio",
+    "compensationDate": "2025-02-01",
+    "pensionFund": "Protección",
+    "pensionDate": "2015-06-20",
+    "severanceFund": "Protección Cesantías",
+    "severanceDate": "2025-02-01",
+    "lifeInsurance": "Seguros del Estado",
+    "lifeInsuranceDate": "2025-02-01",
+    
+    // 4. Datos Personales
+    "entryDate": "2025-02-01",
+    "birthDate": "1992-08-15",
+    "birthPlace": "Bogotá",
+    "issueDate": "2010-09-10",
+    "issuePlace": "Bogotá",
+    "nationality": "Colombiano",
+    "gender": "Mujer",
+    "maritalStatus": "Soltero",
+    "height": 1.65,
+    "weight": 60,
+    "photo": "https://randomuser.me/api/portraits/women/44.jpg",
+    
+    "address": "Carrera 7 # 45-10 Apto 302",
+    "neighborhood": "Chapinero",
+    "housingType": "Alquilado",
+    "phones": ["3001234567", "6017654321"],
+  
+    // 5. Contacto Emergencia
+    "emergencyContact": "Carlos Rodríguez",
+    "emergencyContactPhone": "3159876543",
+    "emergencyContactRelationship": "Padre",
+  
+    // 6. Información Adicional
+    "hasVehicle": false,
+    "vehicleType": "Ninguno",
+    "driversLicense": false,
+    "licenseCategory": "N/A",
+  
+    // 7. Grupo Familiar
+    "familyGroup": [
+      {
+        "name": "Sofía Méndez Rodríguez",
+        "nuip": "1033445566",
+        "relationship": "Hija",
+        "occupation": "Estudiante",
+        "birthDate": "2015-03-10",
+        "economicDependence": true,
+        "healthBeneficiary": true,
+        "disability": false
+      }
+    ],
+  
+    // 8. Información Académica
+    "academicInfo": [
+      {
+        "type": "Tecnico",
+        "institution": "SENA",
+        "city": "Bogotá",
+        "degree": "Técnico en Seguridad Física",
+        "startDate": "2012-01-15",
+        "endDate": "2014-11-30",
+        "completed": true
+      }
+    ],
+  
+    // 9. Idiomas
+    "languages": [
+      {
+        "language": "Español",
+        "institution": "Nativo",
+        "speaks": true,
+        "reads": true,
+        "writes": true
+      },
+      {
+        "language": "Inglés",
+        "institution": "Colombo Americano",
+        "speaks": true,
+        "reads": true,
+        "writes": false
+      }
+    ]
+  }
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+}

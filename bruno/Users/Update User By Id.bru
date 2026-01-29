@@ -1,0 +1,24 @@
+meta {
+  name: Update User By Id
+  type: http
+  seq: 8
+}
+
+patch {
+  url: http://localhost:3000/api/v1/users/692e434e8f5cf95fdb27293a
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "name": "Carlos Bautista",
+      "username": "CarlosBautista34",
+      "email": "cbautista@correo.com",
+      "password": "hrhhvy566"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

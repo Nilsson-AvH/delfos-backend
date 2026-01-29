@@ -1,0 +1,31 @@
+meta {
+  name: 3. Update Config (Cliente)
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:3000/api/v1/system-company
+  body: json
+  auth: inherit
+}
+
+params:query {
+  ~: 
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODI0NjYwMywiZXhwIjoxNzY4Mjc1NDAzfQ.nnMvbJbSVNIk2PWhsbvBo5xEqKB-xxTdATzjQlToV58
+}
+
+body:json {
+  {
+      "address": "CRA 49 # 145 b - 03", // Esto SÍ debe cambiar
+      "validUntil": "2080-01-01",        // Esto DEBE ser ignorado
+      "subscriptionStatus": "active"     // Esto DEBE ser ignorado
+  }
+}
+
+settings {
+  encodeUrl: true
+}

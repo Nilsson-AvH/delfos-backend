@@ -1,0 +1,28 @@
+meta {
+  name: Update Client By Id
+  type: http
+  seq: 4
+}
+
+patch {
+  url: http://localhost:3000/api/v1/clients/69461b07d5b9440bef400365
+  body: json
+  auth: none
+}
+
+headers {
+  ~X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5M2I1YjIxYjhmODRjZDM4ZTY5YmU5OCIsIm5hbWUiOiJFZHdhcmQgTWFuamFycmV6IiwiZW1haWwiOiJlbWFuamFycmV6QGNvcnJlby5jb20iLCJyb2xlIjoidmlld2VyIiwiaWF0IjoxNzY1NTA2NjIwLCJleHAiOjE3NjU1MTAyMjB9.BrImWX7VtXu4p5xmm43Fj362UkaU2wPHcZwvUmRagKc
+}
+
+body:json {
+  {
+    "companyName": "Conjunto Residencial PH.",
+    //"address": "Nueva Dirección: Carrera 15 # 80-20, Bogotá",
+    "phone": "6012435465",
+    "companyEmail": "nuevo.contacto.conjunto@gmail.com"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

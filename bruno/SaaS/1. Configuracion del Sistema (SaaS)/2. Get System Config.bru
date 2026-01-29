@@ -1,0 +1,19 @@
+meta {
+  name: 2. Get System Config
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:3000/api/v1/system-company
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODMyOTEyNSwiZXhwIjoxNzY4MzU3OTI1fQ.SloIjro7XdGYNgeEVyWBqten_6RCKfgI0LEZPRwXqIc
+}
+
+settings {
+  encodeUrl: true
+}

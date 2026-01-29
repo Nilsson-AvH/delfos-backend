@@ -1,0 +1,20 @@
+meta {
+  name: Get User By Id
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:3000/api/v1/users/694ecdea10e720016df342e7
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2OTE1MTAzNSwiZXhwIjoxNzY5MTc5ODM1fQ.3IjAhNQMhy33QQIC7NTBRN0jwGRSZ2sTTySMDkWhZd4
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

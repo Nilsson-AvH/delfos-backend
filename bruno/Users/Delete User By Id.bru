@@ -1,0 +1,19 @@
+meta {
+  name: Delete User By Id
+  type: http
+  seq: 9
+}
+
+delete {
+  url: http://localhost:3000/api/v1/users/694ef7f3e7da25487b26344b
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkZjA1MjkyNmYyZWI0OWZlNDIxNSIsIm5hbWUiOiJFZHdhcmQgRmVybmFuZG8iLCJlbWFpbCI6InN1cGVyYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJzdXBlcmFkbWluIiwiaWF0IjoxNzY2NzkxMTg0LCJleHAiOjE3NjY4MTk5ODR9.8e7vBBvCC0_7sb-T27wQnUdExWLtngPCwucOBeK5_mg
+}
+
+settings {
+  encodeUrl: true
+}

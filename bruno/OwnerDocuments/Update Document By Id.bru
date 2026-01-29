@@ -1,0 +1,33 @@
+meta {
+  name: Update Document By Id
+  type: http
+  seq: 5
+}
+
+patch {
+  url: http://localhost:3000/api/v1/documents/6950cd409ffcacad8b4fccb4
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2Njg5ODA4NiwiZXhwIjoxNzY2OTI2ODg2fQ.wBZ3_CmqVC98G_ImoOMW1M5K3TfYdZCMpkVjiJmk7q8
+}
+
+body:json {
+  //Escenario: Supongamos que RRHH revisó el documento y lo quiere Aprobar.
+  {
+    "status": "Aprobado"
+  //  "title": "Curso Fundamentación (Verificado)"
+  }
+  
+  //Escenario Alternativo: RRHH lo Rechaza porque la foto está borrosa.
+  //{
+  //  "status": "Rechazado",
+  //  "rejectionReason": "La imagen no es legible, por favor escanee de nuevo."
+  //}
+}
+
+settings {
+  encodeUrl: true
+}

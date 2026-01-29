@@ -1,0 +1,23 @@
+meta {
+  name: Root&Super Get Pending
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:3000/api/v1/users?role=registered
+  body: json
+  auth: none
+}
+
+params:query {
+  role: registered
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODQyMDU3NSwiZXhwIjoxNzY4NDQ5Mzc1fQ.790I0BUieUb2p1uX7tZ0dk0lPxTQWFhquKXadI5gG0s
+}
+
+settings {
+  encodeUrl: true
+}

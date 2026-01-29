@@ -1,0 +1,25 @@
+meta {
+  name: Renew Contract
+  type: http
+  seq: 2
+}
+
+patch {
+  url: http://localhost:3000/api/v1/users/operational/6946ea24c846049e64beda18/renew-contract
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "contractContent": "Contrato Fijo a 1 Año - Oficial de Seguridad",
+    "contractValue": 1450000, 
+    "contractTermMonths": 12,
+    "startDate": "2026-01-01",
+    "endDate": "2026-12-31"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

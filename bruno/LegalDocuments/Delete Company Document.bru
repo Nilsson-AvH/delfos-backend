@@ -1,0 +1,19 @@
+meta {
+  name: Delete Company Document
+  type: http
+  seq: 8
+}
+
+delete {
+  url: http://localhost:3000/api/v1/company-documents/6965dacd32557d47234d167c
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NjgwYTk2NTZkZWM1MzM3YzRjM2Y5YSIsIm5hbWUiOiJOaWxzb24iLCJlbWFpbCI6InN1cGVyYWRtaW40QGRlbGZvcy5jb20iLCJyb2xlIjoic3VwZXJhZG1pbiIsImlhdCI6MTc2ODUwMjAyOSwiZXhwIjoxNzY4NTMwODI5fQ.BsRxoYQbpS9ggSEwpcpihv7Ezs0_zFc3EhYzG8Zejg4
+}
+
+settings {
+  encodeUrl: true
+}

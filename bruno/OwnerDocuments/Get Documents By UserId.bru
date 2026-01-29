@@ -1,0 +1,19 @@
+meta {
+  name: Get Documents By UserId
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:3000/api/v1/documents/user/694ecdea10e720016df342e7
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkZjA1MjkyNmYyZWI0OWZlNDIxNSIsIm5hbWUiOiJFZHdhcmQgRmVybmFuZG8iLCJlbWFpbCI6InN1cGVyYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJzdXBlcmFkbWluIiwiaWF0IjoxNzY3NzE0NTY5LCJleHAiOjE3Njc3NDMzNjl9.VFdy40rYASCL4qWXK3MqftnsG7Skmw1fehslKm1Bis4
+}
+
+settings {
+  encodeUrl: true
+}

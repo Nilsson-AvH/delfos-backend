@@ -1,0 +1,20 @@
+meta {
+  name: Get All Generated Docs
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:3000/api/v1/company-documents
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2OTE1MTAzNSwiZXhwIjoxNzY5MTc5ODM1fQ.3IjAhNQMhy33QQIC7NTBRN0jwGRSZ2sTTySMDkWhZd4
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

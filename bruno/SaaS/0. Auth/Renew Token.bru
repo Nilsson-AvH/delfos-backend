@@ -1,0 +1,19 @@
+meta {
+  name: Renew Token
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:3000/api/v1/auth/renew-token
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5M2I1YjIxYjhmODRjZDM4ZTY5YmU5OCIsIm5hbWUiOiJFZHdhcmQgTWFuamFycmV6IiwiZW1haWwiOiJlbWFuamFycmV6QGNvcnJlby5jb20iLCJyb2xlIjoidmlld2VyIiwiaWF0IjoxNzY1ODQyMzc2LCJleHAiOjE3NjU4NDU5NzZ9.pIgOMsQmxFzVjiyDBIrRUyU-DSJE2JiPreIA7LCE3yk
+}
+
+settings {
+  encodeUrl: true
+}

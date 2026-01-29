@@ -1,0 +1,25 @@
+meta {
+  name: Generator Certificate
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/api/v1/generator/certificate
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NjgwYTk2NTZkZWM1MzM3YzRjM2Y5YSIsIm5hbWUiOiJOaWxzb24iLCJlbWFpbCI6InN1cGVyYWRtaW40QGRlbGZvcy5jb20iLCJyb2xlIjoic3VwZXJhZG1pbiIsImlhdCI6MTc2ODQyNzYwMywiZXhwIjoxNzY4NDU2NDAzfQ.iUvbaH4S6d8bY4s1sCWmSeEfM9y78OkqZV6q5oFQU7Y
+}
+
+body:json {
+  {
+    "userId": "694ecdea10e720016df342e7"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Client Transfer
+  type: http
+  seq: 1
+}
+
+patch {
+  url: http://localhost:3000/api/v1/users/operational/694ecdea10e720016df342ed/transfer
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW4yQGRlbGZvcy5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjY3NzIxNzksImV4cCI6MTc2NjgwMDk3OX0.EmwX0hlxfHqIHk_KTgK0pTKa414scVKmMQr9ozBstF4
+}
+
+body:json {
+  {
+    "newClientId": "694ed1d610e720016df34304",
+    "reason": "Rotación programada por solicitud de gerencia",
+  
+    // Opcional: Si quieres ser exacto con la fecha en que inició en el puesto ANTERIOR
+    // Si no lo envías, el sistema usará la fecha de la última actualización del usuario.
+    "previousStartDate": "2025-02-01"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

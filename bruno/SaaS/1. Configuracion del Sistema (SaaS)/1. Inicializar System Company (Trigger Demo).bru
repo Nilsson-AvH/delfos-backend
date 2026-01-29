@@ -1,0 +1,39 @@
+meta {
+  name: 1. Inicializar System Company (Trigger Demo)
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/api/v1/system-company
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVjNjY0Y2ZhMGI3ZjVlYjE3YTE4NCIsIm5hbWUiOiJKdWFuYSBDYXJvbGluYSIsImVtYWlsIjoiYWRtaW5AZGVsZm9zLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODI0NjYwMywiZXhwIjoxNzY4Mjc1NDAzfQ.nnMvbJbSVNIk2PWhsbvBo5xEqKB-xxTdATzjQlToV58
+}
+
+body:json {
+  {
+      "companyName": "SEGURIDAD DELFOS LTDA.",
+      "nit": "830.100.549-1",
+      "department": "BOGOTA",
+      "city": "BOGOTA DC",
+      "address": "CARRERA 49 # 145 B 03",
+      "phones": ["6015230884"],
+      "email": "seguridadelfos@hotmail.com",
+      "legalRepresentative": {
+          "name": "NILSON R LOPEZ A",
+          "role": "GERENTE GENERAL"
+      },
+      // INTENTO DE TRAMPA (El sistema debe ignorar esto)
+      "planType": "enterprise",
+      "validUntil": "2050-01-01", 
+      "maxBranchesAllowed": 100
+  }
+}
+
+settings {
+  encodeUrl: true
+}

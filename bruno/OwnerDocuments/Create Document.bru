@@ -1,0 +1,26 @@
+meta {
+  name: Create Document
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/api/v1/documents/
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODMyOTEyNSwiZXhwIjoxNzY4MzU3OTI1fQ.SloIjro7XdGYNgeEVyWBqten_6RCKfgI0LEZPRwXqIc
+}
+
+body:multipart-form {
+  userId: 694ecdea10e720016df342e7
+  documentType: Cedula
+  title: Cedula de Ciudadanía
+  file: @file(/D:/Users/NilssonAvH/Documents/Nuip Pepita Perez.pdf)
+}
+
+settings {
+  encodeUrl: true
+}

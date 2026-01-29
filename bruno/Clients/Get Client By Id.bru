@@ -1,0 +1,19 @@
+meta {
+  name: Get Client By Id
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:3000/api/v1/clients/694de4312926f2eb49fe422b
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVkNDNiMTBlNzIwMDE2ZGYzNDMxZCIsIm5hbWUiOiJFbnJpY28iLCJlbWFpbCI6ImF1ZGl0b3JAZGVsZm9zLmNvbSIsInJvbGUiOiJhdWRpdG9yIiwiaWF0IjoxNzY2Nzc0MTQ5LCJleHAiOjE3NjY4MDI5NDl9.WVw5otkyzeBJ_hrIcyu7CZ_3oHxtgpRdkR_ztCUjZUU
+}
+
+settings {
+  encodeUrl: true
+}

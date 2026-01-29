@@ -1,0 +1,37 @@
+meta {
+  name: Update SS
+  type: http
+  seq: 3
+}
+
+patch {
+  url: http://localhost:3000/api/v1/users/operational/6946ea24c846049e64beda18/update-ss
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    // Campo especial para el historial
+    "changeReason": "Cambio de proveedor de ARL y actualización salarial",
+  
+    // Datos Técnicos (Nuevo registro)
+    "arl": "Sura ARL",
+    "arlRisk": "R5",
+    "arlDate": "2025-01-15",
+    "eps": "Sanitas",
+    "epsDate": "2024-01-20",
+    "compensationFund": "Compensar",
+    "compensationDate": "2024-01-20",
+    "pensionFund": "Porvenir",
+    "pensionDate": "2010-05-15",
+    "severanceFund": "Porvenir Cesantías",
+    "severanceDate": "2025-01-15",
+    "lifeInsurance": "Seguros Bolívar",
+    "lifeInsuranceDate": "2025-02-01"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

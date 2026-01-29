@@ -1,0 +1,29 @@
+meta {
+  name: Put Signature Adm User
+  type: http
+  seq: 8
+}
+
+put {
+  url: http://localhost:3000/api/v1/auth/signature
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NjgwYTk2NTZkZWM1MzM3YzRjM2Y5YSIsIm5hbWUiOiJOaWxzb24iLCJlbWFpbCI6InN1cGVyYWRtaW40QGRlbGZvcy5jb20iLCJyb2xlIjoic3VwZXJhZG1pbiIsImlhdCI6MTc2ODUwMjAyOSwiZXhwIjoxNzY4NTMwODI5fQ.BsRxoYQbpS9ggSEwpcpihv7Ezs0_zFc3EhYzG8Zejg4
+}
+
+body:multipart-form {
+  signature: @file(/D:/Users/NilssonAvH/Downloads/Gemini_Generated_Image_fgk0sgfgk0sgfgk0.png)
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+}

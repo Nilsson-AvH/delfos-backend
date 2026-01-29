@@ -1,0 +1,23 @@
+meta {
+  name: 6. letterHead
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:3000/api/v1/company-images/update
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODMyOTEyNSwiZXhwIjoxNzY4MzU3OTI1fQ.SloIjro7XdGYNgeEVyWBqten_6RCKfgI0LEZPRwXqIc
+}
+
+body:multipart-form {
+  letterHead: @file(/D:/Users/NilssonAvH/Study/BIT/Project-delfos/backend/src/assets/images/membrete-fondo.png)
+}
+
+settings {
+  encodeUrl: true
+}

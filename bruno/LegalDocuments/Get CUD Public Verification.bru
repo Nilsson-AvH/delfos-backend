@@ -1,0 +1,20 @@
+meta {
+  name: Get CUD Public Verification
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/api/public/verify/666970CC
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2OTE1MTcxMSwiZXhwIjoxNzY5MTgwNTExfQ.5qyFbjgI1uZ0sYKmrRyzr--krUiDH80ZxaS7JK-1_Jc
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

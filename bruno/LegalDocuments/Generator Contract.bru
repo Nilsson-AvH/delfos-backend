@@ -1,0 +1,26 @@
+meta {
+  name: Generator Contract
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/v1/generator/contract
+  body: json
+  auth: none
+}
+
+headers {
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NjdmNDk5OGNhOTYzN2UzNDZiNzE1MiIsIm5hbWUiOiJOaWxzb24iLCJlbWFpbCI6InN1cGVyYWRtaW4zQGRlbGZvcy5jb20iLCJyb2xlIjoic3VwZXJhZG1pbiIsImlhdCI6MTc2ODQyMDc5NSwiZXhwIjoxNzY4NDQ5NTk1fQ.RZjlBrjN6bPtR0ybInbqltQ1PFTQ3Y96I9bZrpH1hpc
+}
+
+body:json {
+  {
+      "userId": "694ecdea10e720016df342e7",
+      "contractId": "694ecdea10e720016df342e9"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
