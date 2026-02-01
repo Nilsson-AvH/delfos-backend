@@ -16,7 +16,10 @@ import {
     dbGetUserById, dbGetOperationalUserById, dbGetAdministrativeUserById, dbGetClientManagerUserById,
     dbGetOperationalProfileByUserId, dbGetAdministrativeProfileByUserId, dbGetClientManagerProfileByUserId,
     dbUpdateUserById, dbUpdateOperationalUserById, dbUpdateAdministrativeUserById, dbUpdateClientManagerUserById,
-    dbDeleteUserById, dbDeleteOperationalUserById, dbDeleteAdministrativeUserById, dbDeleteClientManagerUserById
+    dbDeleteUserById, dbDeleteOperationalUserById, dbDeleteAdministrativeUserById, dbDeleteClientManagerUserById,
+    dbDeleteAdministrativeUserByIdByUserId,
+    dbDeleteOperationalUserByIdByUserId,
+    dbDeleteClientManagerUserByIdByUserId
 } from "../services/user.service.js";
 
 import { createOperationalUser } from "./userOperational.controller.js"; // Controlador especializado de operativos
@@ -52,10 +55,10 @@ const createUser = async (req, res) => {
 
         // Si el usuario que intentan crear GASTA licencia... verificamos el cupo.
         if (licenseConsumingRoles.includes(role)) {
-            
+
             // 1. Obtenemos la configuración de la empresa (Límites)
             const companyConfig = await dbGetCompanyConfig();
-            
+
             if (!companyConfig) {
                 return res.status(500).json({ msg: "Error Crítico: El sistema no tiene configuración de empresa." });
             }
@@ -70,12 +73,12 @@ const createUser = async (req, res) => {
             //TODO: <> DESCOMENTAR EL MURO DE PAGO CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
             // // 3. El Muro de Pago
             if (currentAdminsCount >= companyConfig.maxUsersAllowed) {
-                return res.status(403).json({ 
-                    msg: `⛔ LÍMITE DE USUARIOS ALCANZADO. Su plan actual (${companyConfig.planType}) permite máximo ${companyConfig.maxUsersAllowed} usuarios administrativos. Contacte a ventas para ampliar su cupo.` 
+                return res.status(403).json({
+                    msg: `⛔ LÍMITE DE USUARIOS ALCANZADO. Su plan actual (${companyConfig.planType}) permite máximo ${companyConfig.maxUsersAllowed} usuarios administrativos. Contacte a ventas para ampliar su cupo.`
                 });
             }
             // //TODO: </> DESCOMENTAR EL MURO DE PAGO CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
-            
+
             // // Si pasa aquí, es porque hay cupo. Continuamos...
             console.log(`✅ Cupo de usuarios válido: ${currentAdminsCount}/${companyConfig.maxUsersAllowed}`);
         }
@@ -178,7 +181,7 @@ async function createAdministrativeProfile(data) {
         user: userBase._id, // ¡Aquí está la magia de la referencia!
         password: hashPassword, // Usar el hash, no la contraseña original
         jobTitle: data.jobTitle, // Cargo dentro de la empresa
-        
+
     });
 
     return { user: userBase, profile: adminProfile };
@@ -231,7 +234,7 @@ const getAllUsers = async (req, res) => {
 
         // --- Armar el filtro básico ---
         const query = {};
-        
+
         if (role) query.role = role;
         if (status) query.status = status;
 
@@ -253,7 +256,7 @@ const getAllUsers = async (req, res) => {
         console.error(error);
         res.status(500).json({ msg: "Error al obtener usuarios", error });
     }
-};  
+};
 
 // =====================================================================
 // CONSULTAR USUARIO POR ID (ACTUALIZADO CON VISIBILIDAD)
@@ -308,6 +311,7 @@ const getUserById = async (req, res) => {
 // =====================================================================
 // ELIMINAR USUARIO POR ID
 // =====================================================================
+
 const deleteUserById = async (req, res) => {
     try {
         const { idUser } = req.params;
@@ -320,20 +324,51 @@ const deleteUserById = async (req, res) => {
             });
         }
 
-        // 💣 2. EJECUCIÓN
-        const userDeleted = await dbDeleteUserById(idUser);
-
-        if (!userDeleted) {
+        // 🔍 2. BUSCAR EL USUARIO PARA CONOCER SU ROL
+        const userToDelete = await dbGetUserById(idUser, 'root'); // root ve todo
+        if (!userToDelete) {
             return res.status(404).json({ msg: "Usuario no encontrado para eliminar" });
         }
 
-        res.json({ msg: "Usuario eliminado correctamente", userDeleted });
+        // 💣 3. ELIMINACIÓN EN CASCADA (Según el rol)
+        let profileDeleted = null;
+
+        switch (userToDelete.role) {
+            case 'admin':
+            case 'root':
+            case 'superadmin':
+            case 'auditor':
+                // Eliminar perfil administrativo
+                profileDeleted = await dbDeleteAdministrativeUserByIdByUserId(idUser);
+                break;
+
+            case 'operational':
+                profileDeleted = await dbDeleteOperationalUserByIdByUserId(idUser);
+                break;
+
+            case 'clientManager':
+                profileDeleted = await dbDeleteClientManagerUserByIdByUserId(idUser);
+                break;
+
+            default:
+                console.log(`Usuario sin perfil específico: ${userToDelete.role}`);
+        }
+
+        // 4. Eliminar User Base (último)
+        const userDeleted = await dbDeleteUserById(idUser);
+
+        res.json({
+            msg: "Usuario eliminado correctamente",
+            userDeleted,
+            profileDeleted // Para debugging
+        });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: `Error al eliminar el usuario` });
+        res.status(500).json({ msg: `Error al eliminar el usuario`, error: error.message });
     }
 };
+
 
 // =====================================================================
 // ACTUALIZAR USUARIO POR ID (CON JERARQUÍA)
@@ -381,7 +416,7 @@ const updateUserById = async (req, res) => {
 const updateUserProfilePhoto = async (req, res) => {
     try {
         const { userId } = req.body; // ID del usuario a editar
-        
+
         // Validaciones
         if (!userId) return res.status(400).json({ msg: "El userId es obligatorio." });
         if (!req.file) return res.status(400).json({ msg: "No se ha subido ninguna imagen." });
@@ -397,12 +432,12 @@ const updateUserProfilePhoto = async (req, res) => {
         // 2. BORRADO INTELIGENTE (Limpieza) 🧹
         // Si ya tiene una foto custom (no es la default) y tiene metadatos, la borramos del storage
         const defaultAvatar = 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png';
-        
+
         if (user.photo && user.photo !== defaultAvatar && user.photoPublicId) {
             console.log(`🗑️ Borrando avatar anterior: ${user.photoPublicId} (${user.photoStorageProvider})`);
             await srvDeleteCompanyFile(
-                user.photoPublicId, 
-                user.photoStorageProvider || 'local', 
+                user.photoPublicId,
+                user.photoStorageProvider || 'local',
                 'delfos-avatars' // Carpeta de avatares
             );
         }
@@ -410,7 +445,7 @@ const updateUserProfilePhoto = async (req, res) => {
         // 3. SUBIR NUEVA FOTO (Híbrido) 🚀
         // Usamos el servicio maestro que decide si va a Local, S3 o Cloudinary
         const extension = req.file.mimetype.split('/')[1] || 'jpeg';
-        
+
         const storageResult = await srvSaveCompanyFile(
             req.file.buffer,
             'delfos-avatars', // Carpeta específica para fotos de perfil

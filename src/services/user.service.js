@@ -295,7 +295,33 @@ const dbUpdateClientManagerUserById = async (_id, updatedData) => {
 
 
 // =====================================================================
-// 5. ELIMINACIÓN DE DATOS - ELIMINAR POR ID (DELETE BY ID)
+// 5.0 ELIMINACIÓN POR USER ID (Cascada Inteligente)
+// =====================================================================
+
+/**
+ * Elimina perfil administrativo buscando por user ID
+ */
+const dbDeleteAdministrativeUserByIdByUserId = async (userId) => {
+    return await administrativeUser.findOneAndDelete({ user: userId });
+};
+
+/**
+ * Elimina perfil operativo buscando por user ID
+ */
+const dbDeleteOperationalUserByIdByUserId = async (userId) => {
+    return await operationalUser.findOneAndDelete({ user: userId });
+};
+
+/**
+ * Elimina perfil clientManager buscando por user ID
+ */
+const dbDeleteClientManagerUserByIdByUserId = async (userId) => {
+    return await clientManagerUser.findOneAndDelete({ user: userId });
+};
+
+
+// =====================================================================
+// 5.1 ELIMINACIÓN DE DATOS - ELIMINAR POR ID (DELETE BY ID)
 // =====================================================================
 
 /**
@@ -368,7 +394,12 @@ export {
     dbUpdateAdministrativeUserById,
     dbUpdateClientManagerUserById,
 
-    // Delete
+    // Delete by User ID
+    dbDeleteAdministrativeUserByIdByUserId,
+    dbDeleteOperationalUserByIdByUserId,
+    dbDeleteClientManagerUserByIdByUserId,
+
+    // Delete by ID
     dbDeleteUserById,
     dbDeleteOperationalUserById,
     dbDeleteAdministrativeUserById,
