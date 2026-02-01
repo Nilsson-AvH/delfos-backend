@@ -33,16 +33,45 @@ const createOperationalUser = async (req, res) => {
             email: data.email,
             role: 'operational',
             status: 'active',
-            
+
             // 👇 AQUI MOVEMOS LA FOTO 👇
             // Si viene una foto en el registro (string URL), se la asignamos al User
-            photo: data.photo || undefined 
+            photo: data.photo || undefined
         }, session);
 
 
-        // ... (PASO B: Contrato y PASO C: Parafiscales quedan IGUALES) ...
-        const [newContract] = await dbCreateContract({ /* ... data ... */ }, session);
-        const [newSocialSecurity] = await dbCreateSocialSecurity({ /* ... data ... */ }, session);
+        // ---------------------------------------------------------------
+        // PASO B: Crear Contrato
+        // ---------------------------------------------------------------
+        const [newContract] = await dbCreateContract({
+            jobTitle: data.jobTitle,
+            contractContent: data.contractContent,
+            contractValue: data.contractValue,
+            contractTermMonths: data.contractTermMonths,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            isActive: true,
+        }, session);
+
+        // ---------------------------------------------------------------
+        // PASO C: Crear Parafiscales (Seguridad Social)
+        // ---------------------------------------------------------------
+        const [newSocialSecurity] = await dbCreateSocialSecurity({
+            arl: data.arl,
+            arlRisk: data.arlRisk,
+            arlDate: data.arlDate,
+            eps: data.eps,
+            epsDate: data.epsDate,
+            compensationFund: data.compensationFund,
+            compensationDate: data.compensationDate,
+            pensionFund: data.pensionFund,
+            pensionDate: data.pensionDate,
+            severanceFund: data.severanceFund,
+            severanceDate: data.severanceDate,
+            lifeInsurance: data.lifeInsurance,
+            lifeInsuranceDate: data.lifeInsuranceDate
+        }, session);
+
 
         // ---------------------------------------------------------------
         // PASO D: Crear Perfil Operativo
@@ -52,7 +81,7 @@ const createOperationalUser = async (req, res) => {
             currentClient: data.clientId,
             currentContract: newContract._id,
             currentSocialSecurity: newSocialSecurity._id,
-            
+
             // ... (Historiales igual) ...
             employmentHistory: [{ entryDate: data.entryDate || new Date(), exitDate: null, exitReason: null }],
             clientHistory: [], contractHistory: [], socialSecurityHistory: [], documents: [],
@@ -63,11 +92,14 @@ const createOperationalUser = async (req, res) => {
             issueDate: data.issueDate,
             issuePlace: data.issuePlace,
             nationality: data.nationality,
+            // TODO Verificar si se necesita el campo jobTitle
+            // Se elimina el campo jobTitle del modelo UserOperational porque se movió al modelo Contract
+            // jobTitle: data.jobTitle,
             gender: data.gender,
             maritalStatus: data.maritalStatus,
             height: data.height,
             weight: data.weight,
-            
+
             // ❌ ELIMINADO: photo: data.photo (Ya no va aquí) ❌
 
             // ... (Resto igual: address, phones, emergency, family, etc.) ...
@@ -132,7 +164,7 @@ const createOperationalUser = async (req, res) => {
 //                 // Busca todo lo que está después de '/upload/' (y opcionalmente la versión 'v123/') hasta el punto de la extensión
 //                 const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/;
 //                 const match = currentPhotoUrl.match(regex);
-                
+
 //                 if (match && match[1]) {
 //                     const publicId = match[1]; // ej: "delfos-avatars/tq9fywn..."
 //                     console.log(`🗑️ Eliminando foto anterior: ${publicId}`);

@@ -12,9 +12,15 @@ const ContractSchema = new Schema({
 
     // 1. Datos Económicos y Legales
     // ----------------------------------------------------------------
+    // TODO Verificar si se necesita el campo jobTitle
+    jobTitle: {
+        type: String,
+        required: [true, 'Cargo actual del empleado es obligatorio.'],
+        trim: true
+    },
     contractContent: {
         type: String, // Puede ser texto plano, HTML o ID de plantilla
-        required: [true, 'Cargo actual del empleado es obligatorio.'],
+        required: false,
         default: ''
     },
     contractValue: {

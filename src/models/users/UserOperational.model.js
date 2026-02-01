@@ -104,6 +104,16 @@ const OperationalUserSchema = new Schema({
     issuePlace: { type: String, required: true, trim: true },
     nationality: { type: String, required: true, trim: true },
 
+    // TODO Verificar si se necesita el campo jobTitle
+    // 7.1 Cargo dentro de la empresa (Ej: "Vigilante", "Supervisor", "Jefe de Sección", etc.)
+    // Se elimina el campo jobTitle del modelo UserOperational porque se movió al modelo Contract
+    // jobTitle: { 
+    //     type: String, 
+    //     trim: true,
+    //     uppercase: false,
+    //     default: "Vigilante"
+    // },
+
     gender: { // Sexo
         type: String,
         enum: ['Mujer', 'Hombre'], // Antes: Mujer, Hombre
@@ -118,7 +128,7 @@ const OperationalUserSchema = new Schema({
     // Estadísticas Físicas
     height: { type: Number, required: true }, // Antes: estatura
     weight: { type: Number, required: true }, // Antes: peso
-    
+
     // 👇👇👇 CAMPOS DE FOTO (MIGRADO HACIA USER, YA NO VIVEN ACA) 👇👇👇
     // photo: {
     //     type: String,

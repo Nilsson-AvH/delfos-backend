@@ -11,23 +11,24 @@ post {
 }
 
 headers {
-  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGVkNDNiMTBlNzIwMDE2ZGYzNDMxZCIsIm5hbWUiOiJFbnJpY28iLCJlbWFpbCI6ImF1ZGl0b3JAZGVsZm9zLmNvbSIsInJvbGUiOiJhdWRpdG9yIiwiaWF0IjoxNzY2Nzc0MTQ5LCJleHAiOjE3NjY4MDI5NDl9.WVw5otkyzeBJ_hrIcyu7CZ_3oHxtgpRdkR_ztCUjZUU
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2OTkwMDI2MCwiZXhwIjoxNzY5OTI5MDYwfQ.zkmv7MrGBbI6OhJ38c--XP0imAP1Iz-9eg61v2QNq3s
 }
 
 body:json {
   {
     "role": "operational",
-    "nuip": "1008765732",
+    "nuip": "1054869526",
     "names": "María Alejandra",
     "lastName": "Rodríguez",
     "secondLastName": "López",
-    "email": "maria.seguridad@security.com",
+    "email": "operational@delos.com",
   
     // 1. Asignación al Puesto (IMPORTANTE: Usa un ID de Cliente real de tu BD)
-    "clientId": "694de4312926f2eb49fe422b",
+    "clientId": "697e8b41f96e27d0d3615592",
   
     // 2. Contrato Inicial
-    "contractContent": "Contrato Indefinido - Supervisora de Puesto",
+    "jobTitle": "Vigilante Mujer",
+    "contractContent": "No aplican clausulas especiales",
     "contractValue": 1800000,
     "contractTermMonths": 12,
     "startDate": "2025-02-01",
@@ -132,4 +133,5 @@ script:post-response {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

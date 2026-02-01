@@ -1,10 +1,12 @@
-import { 
-    srvGenerateContract, 
-    srvGenerateCertificate, 
-    srvGenerateCarnet, 
-    srvGeneratePresentationLetter } from '../services/docGenerator.service.js';
+import {
+    srvGenerateContract,
+    srvGenerateCertificate,
+    srvGenerateCarnet,
+    srvGeneratePresentationLetter
+} from '../services/docGenerator.service.js';
 import Contract from '../models/Contract.model.js';
 import User from '../models/users/User.model.js';
+import OperationalUser from '../models/users/UserOperational.model.js';
 
 // =====================================================================
 // HELPER: Capturar Trazabilidad (IP y Dispositivo) 🕵️‍♂️
@@ -21,16 +23,34 @@ const getTraceabilityInfo = (req) => {
 // =====================================================================
 const generateContractPDF = async (req, res) => {
     try {
-        const { userId, contractId } = req.body;
+        // const { userId, contractId } = req.body;
+        const { userId } = req.body;
 
+        // 1. Buscar el usuario base
         const user = await User.findById(userId);
-        const contract = await Contract.findById(contractId);
-
         if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
-        if (!contract) return res.status(404).json({ msg: "Contrato no encontrado (Crea primero el registro de datos)" });
+
+        // 2. Buscar el perfil operativo
+        const operationalProfile = await OperationalUser.findOne({ user: userId })
+            .populate('currentContract'); // Populate para traer TODO el contrato
+
+        if (!operationalProfile) {
+            return res.status(404).json({
+                msg: "Perfil operativo no encontrado para este usuario"
+            });
+        }
+
+        // 3. Validar que tenga contrato activo
+        if (!operationalProfile.currentContract) {
+            return res.status(404).json({
+                msg: "El usuario no tiene un contrato activo asignado"
+            });
+        }
+
+        const contract = operationalProfile.currentContract; // Ahora sí existe
 
         const adminId = req.userId;
-        
+
         // 👇 1. Capturamos la evidencia
         const reqInfo = getTraceabilityInfo(req);
 
@@ -113,7 +133,7 @@ const generateCarnetPDF = async (req, res) => {
 // =====================================================================
 const generatePresentationLetterPDF = async (req, res) => {
     try {
-        const { userId, startDate } = req.body; 
+        const { userId, startDate } = req.body;
 
         if (!userId) return res.status(400).json({ msg: "El userId es obligatorio." });
         if (!startDate) return res.status(400).json({ msg: "La fecha de inicio (startDate) es obligatoria." });

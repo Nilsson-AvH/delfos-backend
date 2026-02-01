@@ -34,8 +34,8 @@ const updateCompanyImages = async (req, res) => {
                 // A. Borrar anterior
                 if (company[dbUrlKey] && company[dbIdKey]) {
                     await srvDeleteCompanyFile(
-                        company[dbIdKey], 
-                        company[dbProviderKey] || 'local', 
+                        company[dbIdKey],
+                        company[dbProviderKey] || 'local',
                         folder
                     );
                 }
@@ -51,17 +51,17 @@ const updateCompanyImages = async (req, res) => {
         };
 
         // Procesar campos (Carpetas organizadas)
-        await processField('logo', 'logoUrl', 'logoPublicId', 'logoProvider', 'delfos-branding');
-        await processField('logoHeader', 'logoHeaderUrl', 'logoHeaderPublicId', 'logoHeaderProvider', 'delfos-branding');
-        await processField('logoFooter', 'logoFooterUrl', 'logoFooterPublicId', 'logoFooterProvider', 'delfos-branding');
-        
-        await processField('watermark', 'watermarkUrl', 'watermarkPublicId', 'watermarkProvider', 'delfos-assets');
-        await processField('qrCode', 'qrCodeUrl', 'qrCodePublicId', 'qrCodeProvider', 'delfos-assets');
-        await processField('letterHead', 'letterHeadUrl', 'letterHeadPublicId', 'letterHeadProvider', 'delfos-assets');
-        await processField('signature', 'signatureUrl', 'signaturePublicId', 'signatureProvider', 'delfos-assets');
+        await processField('logo', 'logoUrl', 'logoPublicId', 'logoProvider', 'delfos-assets/delfos-branding');
+        await processField('logoHeader', 'logoHeaderUrl', 'logoHeaderPublicId', 'logoHeaderProvider', 'delfos-assets/delfos-branding');
+        await processField('logoFooter', 'logoFooterUrl', 'logoFooterPublicId', 'logoFooterProvider', 'delfos-assets/delfos-branding');
 
-        await processField('employeeFrontCard', 'employeeFrontCardUrl', 'employeeFrontCardPublicId', 'employeeFrontCardProvider', 'delfos-carnets-assets');
-        await processField('employeeBackCard', 'employeeBackCardUrl', 'employeeBackCardPublicId', 'employeeBackCardProvider', 'delfos-carnets-assets');
+        await processField('watermark', 'watermarkUrl', 'watermarkPublicId', 'watermarkProvider', 'delfos-assets/delfos-assets');
+        await processField('qrCode', 'qrCodeUrl', 'qrCodePublicId', 'qrCodeProvider', 'delfos-assets/delfos-assets');
+        await processField('letterHead', 'letterHeadUrl', 'letterHeadPublicId', 'letterHeadProvider', 'delfos-assets/delfos-assets');
+        await processField('signature', 'signatureUrl', 'signaturePublicId', 'signatureProvider', 'delfos-assets/delfos-assets');
+
+        await processField('employeeFrontCard', 'employeeFrontCardUrl', 'employeeFrontCardPublicId', 'employeeFrontCardProvider', 'delfos-assets/delfos-carnets-assets');
+        await processField('employeeBackCard', 'employeeBackCardUrl', 'employeeBackCardPublicId', 'employeeBackCardProvider', 'delfos-assets/delfos-carnets-assets');
 
         const updatedCompany = await SystemCompany.findByIdAndUpdate(
             company._id, { $set: updates }, { new: true }

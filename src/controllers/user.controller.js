@@ -68,15 +68,15 @@ const createUser = async (req, res) => {
             });
 
             //TODO: <> DESCOMENTAR EL MURO DE PAGO CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
-            // 3. El Muro de Pago
-            // if (currentAdminsCount >= companyConfig.maxUsersAllowed) {
-            //     return res.status(403).json({ 
-            //         msg: `⛔ LÍMITE DE USUARIOS ALCANZADO. Su plan actual (${companyConfig.planType}) permite máximo ${companyConfig.maxUsersAllowed} usuarios administrativos. Contacte a ventas para ampliar su cupo.` 
-            //     });
-            // }
-            //TODO: </> DESCOMENTAR EL MURO DE PAGO CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
+            // // 3. El Muro de Pago
+            if (currentAdminsCount >= companyConfig.maxUsersAllowed) {
+                return res.status(403).json({ 
+                    msg: `⛔ LÍMITE DE USUARIOS ALCANZADO. Su plan actual (${companyConfig.planType}) permite máximo ${companyConfig.maxUsersAllowed} usuarios administrativos. Contacte a ventas para ampliar su cupo.` 
+                });
+            }
+            // //TODO: </> DESCOMENTAR EL MURO DE PAGO CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
             
-            // Si pasa aquí, es porque hay cupo. Continuamos...
+            // // Si pasa aquí, es porque hay cupo. Continuamos...
             console.log(`✅ Cupo de usuarios válido: ${currentAdminsCount}/${companyConfig.maxUsersAllowed}`);
         }
         // =================================================================
@@ -85,52 +85,52 @@ const createUser = async (req, res) => {
 
         //TODO: <> DESCOMENTAR el semaforo de roles CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES 
         // --- SEMÁFORO DE LÓGICA SEGÚN EL ROL ---
-        // switch (role) {
+        switch (role) {
 
-        //     // CASO A: Administrativos
-        //     case 'root':
-        //     case 'superadmin':
-        //     case 'admin':
-        //     case 'auditor':
-        //         // --- LA EXCEPCIÓN DEL REY ---
-        //         // Si el que pide es 'root', lo dejamos pasar.
-        //         if (requesterRole === 'root') {
-        //             result = await createAdministrativeProfile(inputData);
-        //             break;
-        //         }
+            // CASO A: Administrativos
+            case 'root':
+            case 'superadmin':
+            case 'admin':
+            case 'auditor':
+                // --- LA EXCEPCIÓN DEL REY ---
+                // Si el que pide es 'root', lo dejamos pasar.
+                if (requesterRole === 'root') {
+                    result = await createAdministrativeProfile(inputData);
+                    break;
+                }
 
-        //         // Para cualquier otro mortal (incluso SuperAdmin), puerta cerrada.
-        //         return res.status(403).json({
-        //             msg: "Acción no permitida. Solo el usuario ROOT puede crear administrativos manualmente."
-        //         });
+                // Para cualquier otro mortal (incluso SuperAdmin), puerta cerrada.
+                return res.status(403).json({
+                    msg: "Acción no permitida. Solo el usuario ROOT puede crear administrativos manualmente."
+                });
 
-        //     // CASO B: GESTOR CLIENTE (Requiere Usuario Base + Datos Manager)
-        //     case 'clientManager':
-        //         result = await createClientManagerProfile(inputData);
-        //         break;
+            // CASO B: GESTOR CLIENTE (Requiere Usuario Base + Datos Manager)
+            case 'clientManager':
+                result = await createClientManagerProfile(inputData);
+                break;
 
-        //     // CASO C: OPERATIVO (El "Monstruo" - NO CONSUME LICENCIA EN EL IF DE ARRIBA)
-        //     case 'operational':
-        //         // -----------------------------------------------------------
-        //         // CAMBIO CLAVE: DELEGACIÓN DE CONTROL
-        //         // -----------------------------------------------------------
-        //         // Llamamos directamente a la función del otro archivo.
-        //         // Le pasamos (req, res) para que él maneje la transacción y la respuesta.
-        //         // Usamos 'return' para salirnos de esta función inmediatamente.
-        //         return await createOperationalUser(req, res);
+            // CASO C: OPERATIVO (El "Monstruo" - NO CONSUME LICENCIA EN EL IF DE ARRIBA)
+            case 'operational':
+                // -----------------------------------------------------------
+                // CAMBIO CLAVE: DELEGACIÓN DE CONTROL
+                // -----------------------------------------------------------
+                // Llamamos directamente a la función del otro archivo.
+                // Le pasamos (req, res) para que él maneje la transacción y la respuesta.
+                // Usamos 'return' para salirnos de esta función inmediatamente.
+                return await createOperationalUser(req, res);
 
-        //     // CASO D: REGISTRADO SIMPLE (Solo Usuario Base)
-        //     case 'registered':
-        //         result = await dbRegisterUser(inputData);
-        //         break;
+            // CASO D: REGISTRADO SIMPLE (Solo Usuario Base)
+            case 'registered':
+                result = await dbRegisterUser(inputData);
+                break;
 
-        //     default:
-        //         return res.status(400).json({ msg: `El rol '${role}' no es válido para registro.` });
-        // }
+            default:
+                return res.status(400).json({ msg: `El rol '${role}' no es válido para registro.` });
+        }
         //TODO: </> DESCOMENTAR el semaforo de roles CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES 
 
         //TODO: <> QUITAR SOLO LA SIGUIENTE LINEA CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
-        result = await createAdministrativeProfile(inputData);// QUITAR
+        //result = await createAdministrativeProfile(inputData);// QUITAR
         //TODO: </> QUITAR SOLO LA SIGUIENTE LINEA CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
 
         // Respuesta Exitosa
@@ -225,22 +225,26 @@ async function createClientManagerProfile(data) {
 
 const getAllUsers = async (req, res) => {
     try {
-        // const { role, status } = req.query;
-        // const requesterRole = req.payload.role; // Rol de quien pregunta
+        //TODO: <> DESCOMENTAR EL SEMAFORO DE ROLES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
+        const { role, status } = req.query;
+        const requesterRole = req.payload.role; // Rol de quien pregunta
 
-        // // --- Armar el filtro básico ---
-        // const query = {};
+        // --- Armar el filtro básico ---
+        const query = {};
         
-        // if (role) query.role = role;
-        // if (status) query.status = status;
+        if (role) query.role = role;
+        if (status) query.status = status;
 
-        // // NOTA: Ya no necesitamos tanta lógica manual de "if sensitiveRoles" 
-        // // porque el servicio (dbGetAllUsers) va a filtrar automáticamente 
-        // // lo que este rol no puede ver gracias al helper.
+        // NOTA: Ya no necesitamos tanta lógica manual de "if sensitiveRoles" 
+        // porque el servicio (dbGetAllUsers) va a filtrar automáticamente 
+        // lo que este rol no puede ver gracias al helper.
 
-        // // // Llamamos al servicio pasando los filtros Y el rol del solicitante
+        // Llamamos al servicio pasando los filtros Y el rol del solicitante
+        //TODO: </> DESCOMENTAR EL SEMAFORO DE ROLES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
         const users = await dbGetAllUsers(
-            // query, requesterRole
+            //TODO: <> DESCOMENTAR SOLO LA SIGUIENTE LINEA CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
+            query, requesterRole
+            //TODO: </> DESCOMENTAR SOLO LA SIGUIENTE LINEA CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
         );
 
         res.json(users);

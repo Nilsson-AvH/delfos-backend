@@ -11,13 +11,14 @@ put {
 }
 
 headers {
-  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2ODMyOTEyNSwiZXhwIjoxNzY4MzU3OTI1fQ.SloIjro7XdGYNgeEVyWBqten_6RCKfgI0LEZPRwXqIc
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NGRkYWNkMjkyNmYyZWI0OWZlNDIwOSIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290QGRlbGZvcy5jb20iLCJyb2xlIjoicm9vdCIsImlhdCI6MTc2OTkwMDI2MCwiZXhwIjoxNzY5OTI5MDYwfQ.zkmv7MrGBbI6OhJ38c--XP0imAP1Iz-9eg61v2QNq3s
 }
 
 body:multipart-form {
-  qrCode: @file(/D:/Users/NilssonAvH/Study/BIT/Project-delfos/backend/src/assets/images/carnet-qr-back.png)
+  qrCode: @file(D:\Users\NilssonAvH\Study\BIT\Project-delfos\crmDelfos-api\src\assets\images\carnet-qr-back.png)
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

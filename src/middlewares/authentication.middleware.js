@@ -1,26 +1,46 @@
 import { verifyToken } from "../helpers/jwt.helper.js";
+import { isBypassEnabled, hasDevToken, getDevPayload, logBypassWarning } from "../helpers/dev.helper.js";
 
 const authenticationUser = (req, res, next) => {
     try {
-        // Paso 1: Obtener el string del token (Soporta X-Token o Authorization)
+        // =====================================================================
+        // 🔧 MODO DESARROLLO: BYPASS DE AUTENTICACIÓN
+        // =====================================================================
+        if (isBypassEnabled() && hasDevToken(req)) {
+            logBypassWarning('Authentication Middleware');
+
+            // Inyectar payload de desarrollo
+            const devPayload = getDevPayload();
+            req.payload = devPayload;
+            req.userId = devPayload.id;
+            req.role = devPayload.role;
+
+            return next();
+        }
+
+        // =====================================================================
+        // PRODUCCIÓN: Validación Normal de JWT
+        // =====================================================================
+
+        // Paso 1: Obtener el token
         const token = req.header('X-Token') || req.header('Authorization');
 
-        // Paso 2: Validar que el token no este vacio
+        // Paso 2: Validar que el token no esté vacío
         if (!token) {
             return res.status(401).json({
                 msg: `Error: No hay token en la petición`
             });
         }
 
-        // Limpieza opcional del "Bearer " si usas Authorization estándar
+        // Limpieza del "Bearer " si usas Authorization estándar
         const tokenClean = token.startsWith("Bearer ") ? token.slice(7) : token;
 
         // Paso 3: Validar que el token sea correcto
         const payload = verifyToken(tokenClean);
 
-        // Paso 4: Enviar a traves del Request los datos del payload
+        // Paso 4: Enviar a través del Request los datos del payload
         req.payload = payload;
-        req.userId = payload.id; // Alias útil
+        req.userId = payload.id;
         req.role = payload.role;
 
         // Paso 5: Continuar
@@ -32,6 +52,6 @@ const authenticationUser = (req, res, next) => {
             msg: `Error: Token inválido o expirado`
         });
     }
-}
+};
 
 export default authenticationUser;

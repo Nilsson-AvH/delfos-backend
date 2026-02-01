@@ -63,7 +63,7 @@ app.use('/api/public', publicRoutes);
 // 2. validateLicenseStatus: Revisa si pagaron o si es 'root' para dejar escribir.
 
 //TODO: <> DESCOMENTAR APP.USE CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
-// app.use('/api/v1', authenticationUser, validateLicenseStatus);
+app.use('/api/v1', authenticationUser, validateLicenseStatus);
 //TODO: </> DESCOMENTAR APP.USE CON MIDDLEWARES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
 
 // NOTA TÉCNICA:

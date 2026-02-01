@@ -154,3 +154,7 @@ public/
 # Otros archivos a ignorar
 .DS_Store
 Desktop.ini
+
+# Archivos de configuracion de desarrollo
+.dev.vars
+src/helpers/dev.helper.js
