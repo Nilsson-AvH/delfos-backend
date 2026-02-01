@@ -30,19 +30,18 @@ const AdministrativeUserSchema = new Schema({
     },
 
     // 👇👇👇 NUEVOS CAMPOS PARA FIRMANTES 👇👇👇
-    
+
     // 1. Cargo dentro de la empresa (Ej: "Coordinador de Operaciones", "Analista de RRHH")
-        jobTitle: { 
-        type: String, 
+    jobTitle: {
+        type: String,
         trim: true,
-        uppercase: true,
-        default: "ADMINISTRATIVO" 
+        default: "Administrativo"
     },
 
     // 2. Firma Digital Personal (Imagen PNG transparente)
-        signatureUrl: { type: String }, // URL de la firma
-        signaturePublicId: { type: String, select: false }, // ID para borrar/actualizar la firma
-        signatureStorageProvider: { type: String, default: 'local', select: false }, // Proveedor de almacenamiento
+    signatureUrl: { type: String }, // URL de la firma
+    signaturePublicId: { type: String, select: false }, // ID para borrar/actualizar la firma
+    signatureStorageProvider: { type: String, default: 'local', select: false }, // Proveedor de almacenamiento
 
     // 👆👆👆 --------------------------------- 👆👆👆
 

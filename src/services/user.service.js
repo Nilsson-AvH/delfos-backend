@@ -63,9 +63,9 @@ const dbRegisterClientManagerUser = async (newUser) => {
  * @returns {Array} Array de usuarios filtrados.
  */
 const dbGetAllUsers = async (queryFilters = {}, requesterRole) => {
+
     // 1. Obtenemos la lista negra (Roles que NO puede ver)
     const excludedRoles = getExcludedRoles(requesterRole);
-
     // 2. Clonamos los filtros para manipularlos sin afectar el original
     const finalQuery = { ...queryFilters };
 
@@ -74,19 +74,65 @@ const dbGetAllUsers = async (queryFilters = {}, requesterRole) => {
         // CASO A: El usuario pidió un rol específico (ej: ?role=registered)
         // Usamos $and para obligar a que se cumplan AMBAS condiciones.
         finalQuery.$and = [
-            { role: finalQuery.role },       // Condición 1: Lo que el usuario pide
-            { role: { $nin: excludedRoles } } // Condición 2: Seguridad (Lista negra)
+            { role: finalQuery.role },                               // Condición 1: Lo que el usuario pide
+            { role: { $nin: excludedRoles } }                        // Condición 2: Seguridad (Lista negra)
         ];
-        
         // Importante: Borramos la propiedad 'role' simple para que no estorbe
-        delete finalQuery.role; 
+        delete finalQuery.role;
     } else {
         // CASO B: No pidió rol específico, simplemente excluimos los prohibidos
         finalQuery.role = { $nin: excludedRoles };
     }
 
-    return await userModel.find(finalQuery);
+    // 4. Ejecutamos la búsqueda
+    const users = await userModel.find(finalQuery);
+
+    // 5. Buscamos los perfiles adicionales
+    const usersWithProfiles = await Promise.all(
+        users.map(async (user) => {
+            const userObj = user.toObject();
+
+            // 6. Agregamos el puesto de trabajo según el rol
+            switch (user.role) {
+                // 6.1. Roles Administrativos
+                case 'admin':
+                case 'root':
+                case 'superadmin':
+                case 'auditor':
+                    const adminProfile = await administrativeUser
+                        .findOne({ user: user._id })
+                        .select('jobTitle signatureUrl');
+                    userObj.jobTitle = adminProfile?.jobTitle || 'Administrativo';
+                    userObj.signatureUrl = adminProfile?.signatureUrl || null;
+                    break;
+
+                // 6.2. Roles Operativos
+                case 'operational':
+                    const operProfile = await operationalUser
+                        .findOne({ user: user._id })
+                        .populate('currentContract', 'jobTitle');
+                    userObj.jobTitle = operProfile?.currentContract?.jobTitle || 'Vigilante';
+                    break;
+
+                // 6.3. Roles Gerente de Clientes
+                case 'clientManager':
+                    userObj.jobTitle = 'Gerente de Cliente';
+                    break;
+
+                // 6.4. Rol por defecto
+                default:
+                    userObj.jobTitle = 'Sin asignar';
+            }
+
+            // 7. Devolvemos el objeto limpio
+            return userObj;
+        })
+    );
+
+    // 8. Devolvemos el array final
+    return usersWithProfiles;
 };
+
 
 /**
  * Obtiene todos los usuarios operativos (vigilantes/operarios).
