@@ -5,20 +5,22 @@ meta {
 }
 
 patch {
-  url: http://localhost:3000/api/v1/users/692e434e8f5cf95fdb27293a
+  url: http://localhost:3000/api/v1/users/698259c813885e4fb1b95a94
   body: json
   auth: none
 }
 
+headers {
+  X-Token-Dev: DESARROLLO_2025
+}
+
 body:json {
   {
-      "name": "Carlos Bautista",
-      "username": "CarlosBautista34",
-      "email": "cbautista@correo.com",
-      "password": "hrhhvy566"
+      "jobTitle":"Directora Jodona"
   }
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

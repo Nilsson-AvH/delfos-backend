@@ -25,6 +25,7 @@ import {
 import { createOperationalUser } from "./userOperational.controller.js"; // Controlador especializado de operativos
 import { encryptPassword } from "../helpers/bcrypt.helper.js"; // Cifrado de contraseñas
 import { dbGetCompanyConfig } from "../services/system/systemCompany.service.js"; // <--- 1. Importar config
+import ContractModel from "../models/Contract.model.js";
 import User from "../models/users/User.model.js";
 
 // 👇 IMPORTAMOS LOS SERVICIOS MAESTROS DE STORAGE 👇
@@ -317,25 +318,24 @@ const deleteUserById = async (req, res) => {
         const { idUser } = req.params;
         const requesterRole = req.payload.role;
 
-        // 🔒 1. VALIDACIÓN DE SEGURIDAD
+        // 1. VALIDACIÓN DE SEGURIDAD
         if (requesterRole !== 'root') {
             return res.status(403).json({
                 msg: "Acceso denegado. No tiene permisos de eliminación. Contacte a Soporte."
             });
         }
 
-        // 🔍 2. BUSCAR EL USUARIO PARA CONOCER SU ROL
+        // 2. BUSCAR EL USUARIO PARA CONOCER SU ROL
         const userToDelete = await dbGetUserById(idUser, 'root'); // root ve todo
         if (!userToDelete) {
             return res.status(404).json({ msg: "Usuario no encontrado para eliminar" });
         }
 
-        // 💣 3. ELIMINACIÓN EN CASCADA (Según el rol)
+        // 3. ELIMINACIÓN EN CASCADA (Según el rol)
         let profileDeleted = null;
 
         switch (userToDelete.role) {
             case 'admin':
-            case 'root':
             case 'superadmin':
             case 'auditor':
                 // Eliminar perfil administrativo
@@ -369,46 +369,172 @@ const deleteUserById = async (req, res) => {
     }
 };
 
-
 // =====================================================================
-// ACTUALIZAR USUARIO POR ID (CON JERARQUÍA)
+// ACTUALIZAR USUARIO POR ID (USER + PROFILE + CONTRACT) 🚀
 // =====================================================================
 const updateUserById = async (req, res) => {
     try {
         const { idUser } = req.params;
         const updateData = req.body;
-        const requesterRole = req.payload.role; // Quién hace el cambio
+        const requesterRole = req.payload.role;
 
-        // 🔒 SEGURIDAD NIVEL 1: ¿Qué campos quieren tocar?
-        // (Esta lógica la tenías y es excelente, la mantenemos)
+        // 🔒 SEGURIDAD NIVEL 1: Permisos para cambiar Rol/Estatus
         const restrictedFields = ['role', 'status'];
         const isTouchingRestricted = Object.keys(updateData).some(field => restrictedFields.includes(field));
         const hasHighPrivilege = ['root', 'superadmin'].includes(requesterRole);
 
         if (isTouchingRestricted && !hasHighPrivilege) {
             return res.status(403).json({
-                msg: "Acceso denegado: No tiene permisos para cambiar el Rol o Estatus. Solo cambios básicos permitidos."
+                msg: "Acceso denegado: No tiene permisos para cambiar el Rol o Estatus."
             });
         }
 
-        // 🔒 SEGURIDAD NIVEL 2: ¿A QUIÉN quieren tocar? (Jerarquía)
-        // Pasamos el requesterRole para que el servicio aplique el filtro de visibilidad.
-        const updatedUser = await dbUpdateUserById(idUser, updateData, requesterRole);
-
-        if (!updatedUser) {
-            // Si devuelve null es porque:
-            // 1. El usuario no existe.
-            // 2. O el usuario existe PERO tiene un rango superior al mío (es invisible para mí).
-            return res.status(404).json({ msg: "Usuario no encontrado o no autorizado para editar." });
+        // PASO 1: Buscar usuario y su rol
+        const existingUser = await dbGetUserById(idUser, requesterRole);
+        if (!existingUser) {
+            return res.status(404).json({ msg: "Usuario no encontrado o no autorizado." });
         }
 
-        res.json({ msg: "Usuario actualizado", user: updatedUser });
+        // PASO 2: Separar campos inteligentemente
+        // Usamos la función auxiliar que creamos arriba
+        const { userBaseFields, profileFields, contractFields } = separateUpdateFields(updateData, existingUser.role);
+
+        // PASO 3: Actualizar User Base
+        let updatedUser = existingUser;
+        if (Object.keys(userBaseFields).length > 0) {
+            updatedUser = await dbUpdateUserById(idUser, userBaseFields, requesterRole);
+        }
+
+        // PASO 4: Actualizar Perfil y Contrato
+        let updatedProfile = null;
+        let updatedContract = null;
+
+        if (Object.keys(profileFields).length > 0 || Object.keys(contractFields).length > 0) {
+
+            // Encriptar password si viene
+            if (profileFields.password) {
+                profileFields.password = encryptPassword(profileFields.password);
+            }
+
+            switch (existingUser.role) {
+                case 'admin':
+                case 'root':
+                case 'superadmin':
+                case 'auditor':
+                    const adminProfile = await dbGetAdministrativeProfileByUserId(idUser);
+                    if (adminProfile) {
+                        updatedProfile = await dbUpdateAdministrativeUserById(adminProfile._id, profileFields);
+                    }
+                    break;
+
+                case 'operational':
+                    const operProfile = await dbGetOperationalProfileByUserId(idUser);
+                    if (operProfile) {
+                        // A. Actualizar Perfil Operativo (datos personales)
+                        if (Object.keys(profileFields).length > 0) {
+                            updatedProfile = await dbUpdateOperationalUserById(operProfile._id, profileFields);
+                        } else {
+                            updatedProfile = operProfile; // Mantener el existente para retornar
+                        }
+
+                        // B. Actualizar Contrato Activo (jobTitle, sueldo) 🚨
+                        if (Object.keys(contractFields).length > 0) {
+                            // Buscar el contrato actual usando el ID que tiene el perfil
+                            updatedContract = await ContractModel.findByIdAndUpdate(
+                                operProfile.currentContract, // ID del contrato
+                                contractFields,
+                                { new: true }
+                            );
+                            console.log("📝 Contrato actualizado:", updatedContract);
+                        }
+                    }
+                    break;
+
+                case 'clientManager':
+                    const managerProfile = await dbGetClientManagerProfileByUserId(idUser);
+                    if (managerProfile) {
+                        updatedProfile = await dbUpdateClientManagerUserById(managerProfile._id, profileFields);
+                    }
+                    break;
+            }
+        }
+
+        res.json({
+            msg: "Usuario actualizado correctamente",
+            user: updatedUser,
+            profile: updatedProfile,
+            contract: updatedContract // Devolvemos el contrato si se tocó
+        });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al actualizar usuario", error });
+        res.status(500).json({ msg: "Error al actualizar usuario", error: error.message });
     }
 };
+
+// =====================================================================
+// FUNCIÓN AUXILIAR MEJORADA (Lista Completa)
+// =====================================================================
+function separateUpdateFields(updateData, userRole) {
+
+    // 1. USER BASE
+    const userBaseList = ['nuip', 'names', 'lastName', 'secondLastName', 'email', 'role', 'status', 'photo', 'requestedRole'];
+
+    // 2. CONTRATO (Solo aplica para operativos)
+    const contractList = ['jobTitle', 'contractValue', 'contractContent', 'contractTermMonths', 'isActive'];
+
+    // 3. PERFILES ESPECÍFICOS (LISTA COMPLETA DE TUS MODELOS)
+    const profileFieldsByRole = {
+
+        // ADMINISTRATIVOS
+        admin: ['password', 'jobTitle', 'signatureUrl'],
+        root: ['password', 'jobTitle', 'signatureUrl'],
+        superadmin: ['password', 'jobTitle', 'signatureUrl'],
+        auditor: ['password', 'jobTitle', 'signatureUrl'],
+
+        // OPERATIVOS (Todo menos jobTitle que ya está en contrato)
+        operational: [
+            'currentClient', 'currentContract', 'currentSocialSecurity',
+            'birthDate', 'birthPlace', 'issueDate', 'issuePlace', 'nationality',
+            'gender', 'maritalStatus', 'height', 'weight',
+            'address', 'neighborhood', 'housingType', 'phones',
+            'emergencyContact', 'emergencyContactPhone', 'emergencyContactRelationship',
+            'hasVehicle', 'vehicleType', 'driversLicense', 'licenseCategory',
+            'familyGroup', 'academicInfo', 'languages'
+        ],
+
+        // CLIENT MANAGERS
+        clientManager: [
+            'birthDate', 'birthPlace', 'issueDate', 'issuePlace', 'nationality',
+            'phones', 'address'
+        ]
+    };
+
+    const userBaseFields = {};
+    const profileFields = {};
+    const contractFields = {};
+
+    const allowedProfileFields = profileFieldsByRole[userRole] || [];
+
+    Object.keys(updateData).forEach(field => {
+        if (userBaseList.includes(field)) {
+            userBaseFields[field] = updateData[field];
+        }
+        else if (userRole === 'operational' && contractList.includes(field)) {
+            contractFields[field] = updateData[field];
+        }
+        // Verificamos explícitamente si el campo está permitido en el perfil
+        else if (allowedProfileFields.includes(field)) {
+            profileFields[field] = updateData[field];
+        }
+        else {
+            // Opcional: Loguear campos ignorados para debugging
+            // console.warn(`Campo ignorado: ${field} para rol ${userRole}`);
+        }
+    });
+
+    return { userBaseFields, profileFields, contractFields };
+}
 
 // =====================================================================
 // FUNCIÓN: ACTUALIZAR FOTO DE PERFIL (HÍBRIDO) 📸
