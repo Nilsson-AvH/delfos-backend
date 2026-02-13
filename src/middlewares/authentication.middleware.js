@@ -38,6 +38,8 @@ const authenticationUser = (req, res, next) => {
         // Paso 3: Validar que el token sea correcto
         const payload = verifyToken(tokenClean);
 
+        //TODO: Completas validaciones con el ejercicio hecho en clase el 12 de feb 20206, foto en iPhone.
+
         // Paso 4: Enviar a través del Request los datos del payload
         req.payload = payload;
         req.userId = payload.id;

@@ -13,17 +13,17 @@ const register = async (req, res) => {
     try {
 
         // Extraemos los datos del body
-        const { 
-            nuip, 
-            names, 
-            lastName, 
-            secondLastName, 
-            email, 
-            password, 
+        const {
+            nuip,
+            names,
+            lastName,
+            secondLastName,
+            email,
+            password,
             roleRequest,
             jobTitle
         } = req.body;
-        
+
         const file = req.file;
 
         // 1. Crear Usuario Base (Identidad)
@@ -46,10 +46,10 @@ const register = async (req, res) => {
 
         if (file) {
             const extension = file.mimetype.split('/')[1] || 'png';
-            
+
             // Guardamos usando el servicio maestro (Local/S3/Cloudinary)
             const storageResult = await srvSaveCompanyFile(
-                file.buffer, 
+                file.buffer,
                 'delfos-signatures', // Carpeta específica para firmas
                 extension
             );
@@ -68,9 +68,9 @@ const register = async (req, res) => {
             password: hashPassword,
 
             jobTitle: jobTitle || undefined,
-            
+
             // Esparcimos los datos de la firma (si existen),
-            ...signatureData            
+            ...signatureData
         });
 
         res.status(201).json({
@@ -173,6 +173,8 @@ const renewToken = async (req, res) => {
     });
 
     res.json({ token, user: payload });
+
+    //TODO: Completas validaciones con el ejercicio hecho en clase el 12 de feb 20206, foto en iPhone.
 };
 
 // =================================================================
@@ -181,8 +183,8 @@ const renewToken = async (req, res) => {
 const updateSignature = async (req, res) => {
     try {
         // CORRECCIÓN: Usamos req.payload en lugar de req.user
-        const currentUser = req.payload || req.user; 
-        
+        const currentUser = req.payload || req.user;
+
         if (!currentUser || !currentUser.id) {
             throw new Error("No se identificó el usuario (Token inválido o falta middleware).");
         }
@@ -216,7 +218,7 @@ const updateSignature = async (req, res) => {
         // 4. Actualizar BD
         const updatedAdmin = await AdministrativeUser.findOneAndUpdate(
             { user: userId },
-            { 
+            {
                 signatureUrl: storageResult.url,
                 signaturePublicId: storageResult.publicId,
                 signatureStorageProvider: storageResult.provider
@@ -265,10 +267,10 @@ const removeSignature = async (req, res) => {
         // 3. Actualizar BD a null
         await AdministrativeUser.findOneAndUpdate(
             { user: userId },
-            { 
+            {
                 signatureUrl: null,
                 signaturePublicId: null,
-                signatureStorageProvider: null 
+                signatureStorageProvider: null
             }
         );
 
