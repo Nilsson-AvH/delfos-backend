@@ -1,13 +1,13 @@
-import { isBypassEnabled, hasDevToken, logBypassWarning } from "../helpers/dev.helper.js";
+// import { isBypassEnabled, hasDevToken, logBypassWarning } from "../helpers/dev.helper.js";
 
 const authorizationUser = (req, res, next) => {
     // =====================================================================
     // 🔧 MODO DESARROLLO: BYPASS DE AUTORIZACIÓN
     // =====================================================================
-    if (isBypassEnabled() && hasDevToken(req)) {
-        logBypassWarning('Authorization Middleware');
-        return next(); // Bypass total - permite todo
-    }
+    // if (isBypassEnabled() && hasDevToken(req)) {
+    //     logBypassWarning('Authorization Middleware');
+    //     return next(); // Bypass total - permite todo
+    // }
 
     // =====================================================================
     // PRODUCCIÓN: Validación Normal de Roles

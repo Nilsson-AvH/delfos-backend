@@ -1,16 +1,16 @@
 import SystemCompany from '../models/system/SystemCompany.model.js';
 import moment from 'moment';
-import { isBypassEnabled, hasDevToken, logBypassWarning } from "../helpers/dev.helper.js";
+// import { isBypassEnabled, hasDevToken, logBypassWarning } from "../helpers/dev.helper.js";
 
 export const validateLicenseStatus = async (req, res, next) => {
     try {
         // =====================================================================
         // 🔧 MODO DESARROLLO: BYPASS DE LICENCIA
         // =====================================================================
-        if (isBypassEnabled() && hasDevToken(req)) {
-            logBypassWarning('License Middleware');
-            return next(); // Bypass - asume licencia válida
-        }
+        // if (isBypassEnabled() && hasDevToken(req)) {
+        //     logBypassWarning('License Middleware');
+        //     return next(); // Bypass - asume licencia válida
+        // }
 
         // =====================================================================
         // PRODUCCIÓN: Validación Normal de Licencia

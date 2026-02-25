@@ -321,7 +321,7 @@ const deleteUserById = async (req, res) => {
         // 1. VALIDACIÓN DE SEGURIDAD
         if (requesterRole !== 'root') {
             return res.status(403).json({
-                msg: "Acceso denegado. No tiene permisos de eliminación. Contacte a Soporte."
+                msg: "🟢🟡🔴 Error Backend: (user.controller.js) Acceso denegado. No tiene permisos de eliminación. Contacte a Soporte."
             });
         }
 
@@ -365,7 +365,7 @@ const deleteUserById = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: `Error al eliminar el usuario`, error: error.message });
+        res.status(500).json({ msg: `🟢🟡🔴 Error Backend: (user.controller.js) Error al eliminar el usuario`, error: error.message });
     }
 };
 
@@ -385,14 +385,14 @@ const updateUserById = async (req, res) => {
 
         if (isTouchingRestricted && !hasHighPrivilege) {
             return res.status(403).json({
-                msg: "Acceso denegado: No tiene permisos para cambiar el Rol o Estatus."
+                msg: "🟢🟡🔴 Error Backend: (user.controller.js) Acceso denegado: No tiene permisos para cambiar el Rol o Estatus."
             });
         }
 
         // PASO 1: Buscar usuario y su rol
         const existingUser = await dbGetUserById(idUser, requesterRole);
         if (!existingUser) {
-            return res.status(404).json({ msg: "Usuario no encontrado o no autorizado." });
+            return res.status(404).json({ msg: "🟢🟡🔴 Error Backend: (user.controller.js) Usuario no encontrado o no autorizado." });
         }
 
         // PASO 2: Separar campos inteligentemente
@@ -468,7 +468,7 @@ const updateUserById = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al actualizar usuario", error: error.message });
+        res.status(500).json({ msg: "🟢🟡🔴 Error Backend: (user.controller.js) Error al actualizar usuario", error: error.message });
     }
 };
 

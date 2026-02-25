@@ -1,22 +1,22 @@
 import { verifyToken } from "../helpers/jwt.helper.js";
-import { isBypassEnabled, hasDevToken, getDevPayload, logBypassWarning } from "../helpers/dev.helper.js";
+// import { isBypassEnabled, hasDevToken, getDevPayload, logBypassWarning } from "../helpers/dev.helper.js";
 
 const authenticationUser = (req, res, next) => {
     try {
         // =====================================================================
         // 🔧 MODO DESARROLLO: BYPASS DE AUTENTICACIÓN
         // =====================================================================
-        if (isBypassEnabled() && hasDevToken(req)) {
-            logBypassWarning('Authentication Middleware');
+        // if (isBypassEnabled() && hasDevToken(req)) {
+        //     logBypassWarning('Authentication Middleware');
 
-            // Inyectar payload de desarrollo
-            const devPayload = getDevPayload();
-            req.payload = devPayload;
-            req.userId = devPayload.id;
-            req.role = devPayload.role;
+        //     // Inyectar payload de desarrollo
+        //     const devPayload = getDevPayload();
+        //     req.payload = devPayload;
+        //     req.userId = devPayload.id;
+        //     req.role = devPayload.role;
 
-            return next();
-        }
+        //     return next();
+        // }
 
         // =====================================================================
         // PRODUCCIÓN: Validación Normal de JWT
@@ -28,7 +28,7 @@ const authenticationUser = (req, res, next) => {
         // Paso 2: Validar que el token no esté vacío
         if (!token) {
             return res.status(401).json({
-                msg: `Error: No hay token en la petición`
+                msg: `Error Backend: No hay token en la petición`
             });
         }
 
@@ -51,7 +51,7 @@ const authenticationUser = (req, res, next) => {
     } catch (error) {
         console.log(error);
         res.status(401).json({
-            msg: `Error: Token inválido o expirado`
+            msg: `Error Backend: Token inválido o expirado`
         });
     }
 };
