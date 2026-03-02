@@ -22,14 +22,32 @@ const dbCreateClient = async (data) => {
 // 2. READ
 const dbGetAllClients = async () => {
     return await ClientModel.find()
-        .populate("clientManager", "user") // 🔥 CORRECCIÓN: Trae el ID del User Base, no campos que no existen
+        .populate({
+            path: 'clientManager',
+            populate: {
+                path: 'user',
+                select: 'names lastName secondLastName email' // Solo traemos lo que necesitamos para la tabla
+            }
+        })
         .sort({ createdAt: -1 });
 };
 
 const dbGetClientById = async (id) => {
     return await ClientModel.findById(id)
-        .populate("clientManager", "user")
-        .populate("managersHistory.manager", "user");
+        .populate({
+            path: 'clientManager',
+            populate: {
+                path: 'user',
+                select: 'names lastName secondLastName email'
+            }
+        })
+        .populate({
+            path: 'managersHistory.manager',
+            populate: {
+                path: 'user',
+                select: 'names lastName secondLastName email'
+            }
+        });
 };
 
 // =====================================================================
