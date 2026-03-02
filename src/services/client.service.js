@@ -22,14 +22,14 @@ const dbCreateClient = async (data) => {
 // 2. READ
 const dbGetAllClients = async () => {
     return await ClientModel.find()
-        .populate("clientManager", "names lastName email") // Trae nombre del manager actual
+        .populate("clientManager", "user") // 🔥 CORRECCIÓN: Trae el ID del User Base, no campos que no existen
         .sort({ createdAt: -1 });
 };
 
 const dbGetClientById = async (id) => {
     return await ClientModel.findById(id)
-        .populate("clientManager", "names lastName email")
-        .populate("managersHistory.manager", "names lastName email");
+        .populate("clientManager", "user")
+        .populate("managersHistory.manager", "user");
 };
 
 // =====================================================================

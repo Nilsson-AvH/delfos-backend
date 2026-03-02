@@ -5,13 +5,17 @@ meta {
 }
 
 get {
-  url: http://localhost:3000/api/v1/users/
+  url: http://localhost:3000/api/v1/users?role=clientManager
   body: json
   auth: none
 }
 
+params:query {
+  role: clientManager
+}
+
 headers {
-  X-Token-Dev: DESARROLLO_2025
+  X-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5N2ZjYTVlN2Q0NGRmZjJiYmU1YzRlNyIsIm5hbWUiOiJOaWxzc29uIiwiZW1haWwiOiJyb290MDFAZGVsZm9zLmNvbSIsInJvbGUiOiJyb290IiwiaWF0IjoxNzcyMjI1ODEwLCJleHAiOjE3NzIyNTQ2MTB9.CDJxbYeuwem2dx3j3TfvXlB8oSO_Iz7XvtM-PKqIJnU
 }
 
 script:post-response {
