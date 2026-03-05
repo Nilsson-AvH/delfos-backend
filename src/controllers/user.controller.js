@@ -230,8 +230,12 @@ async function createClientManagerProfile(data) {
 const getAllUsers = async (req, res) => {
     try {
         //TODO: <> DESCOMENTAR EL SEMAFORO DE ROLES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
-        const { role, status } = req.query;
+        const { role, status, page, limit, search } = req.query;
         const requesterRole = req.payload.role; // Rol de quien pregunta
+
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+        const searchStr = search || '';
 
         // --- Armar el filtro básico ---
         const query = {};
@@ -243,11 +247,11 @@ const getAllUsers = async (req, res) => {
         // porque el servicio (dbGetAllUsers) va a filtrar automáticamente 
         // lo que este rol no puede ver gracias al helper.
 
-        // Llamamos al servicio pasando los filtros Y el rol del solicitante
+        // Llamamos al servicio pasando los filtros Y el rol del solicitante, con parámetros de paginación
         //TODO: </> DESCOMENTAR EL SEMAFORO DE ROLES CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
         const users = await dbGetAllUsers(
             //TODO: <> DESCOMENTAR SOLO LA SIGUIENTE LINEA CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
-            query, requesterRole
+            query, requesterRole, pageNum, limitNum, searchStr
             //TODO: </> DESCOMENTAR SOLO LA SIGUIENTE LINEA CUANDO ARREGLE EL FRONTEND CON MIDDLEWARES
         );
 

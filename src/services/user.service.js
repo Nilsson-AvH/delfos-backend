@@ -62,30 +62,58 @@ const dbRegisterClientManagerUser = async (newUser) => {
  * @param {string} requesterRole - El rol de quien hace la petición.
  * @returns {Array} Array de usuarios filtrados.
  */
-const dbGetAllUsers = async (queryFilters = {}, requesterRole) => {
+const dbGetAllUsers = async (queryFilters = {}, requesterRole, page = 1, limit = 10, search = '') => {
 
     // 1. Obtenemos la lista negra (Roles que NO puede ver)
     const excludedRoles = getExcludedRoles(requesterRole);
     // 2. Clonamos los filtros para manipularlos sin afectar el original
     const finalQuery = { ...queryFilters };
 
+    if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        finalQuery.$or = [
+            { names: searchRegex },
+            { lastName: searchRegex },
+            { secondLastName: searchRegex },
+            { nuip: searchRegex },
+            { email: searchRegex },
+            { role: searchRegex }
+        ];
+    }
+
     // 3. LÓGICA DE FUSIÓN INTELIGENTE (Fix del Bug) 🧠
     if (finalQuery.role) {
         // CASO A: El usuario pidió un rol específico (ej: ?role=registered)
         // Usamos $and para obligar a que se cumplan AMBAS condiciones.
-        finalQuery.$and = [
-            { role: finalQuery.role },                               // Condición 1: Lo que el usuario pide
-            { role: { $nin: excludedRoles } }                        // Condición 2: Seguridad (Lista negra)
-        ];
+        if (finalQuery.$and) {
+            finalQuery.$and.push({ role: finalQuery.role });
+            finalQuery.$and.push({ role: { $nin: excludedRoles } });
+        } else {
+            finalQuery.$and = [
+                { role: finalQuery.role },                               // Condición 1: Lo que el usuario pide
+                { role: { $nin: excludedRoles } }                        // Condición 2: Seguridad (Lista negra)
+            ];
+        }
+
         // Importante: Borramos la propiedad 'role' simple para que no estorbe
         delete finalQuery.role;
     } else {
         // CASO B: No pidió rol específico, simplemente excluimos los prohibidos
-        finalQuery.role = { $nin: excludedRoles };
+        if (finalQuery.$and) {
+            finalQuery.$and.push({ role: { $nin: excludedRoles } });
+        } else {
+            finalQuery.role = { $nin: excludedRoles };
+        }
     }
 
-    // 4. Ejecutamos la búsqueda
-    const users = await userModel.find(finalQuery);
+    const skip = (page - 1) * limit;
+
+    // 4. Ejecutamos la búsqueda con paginación
+    const total = await userModel.countDocuments(finalQuery);
+    const users = await userModel.find(finalQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
 
     // 5. Buscamos los perfiles adicionales
     const usersWithProfiles = await Promise.all(
@@ -129,8 +157,13 @@ const dbGetAllUsers = async (queryFilters = {}, requesterRole) => {
         })
     );
 
-    // 8. Devolvemos el array final
-    return usersWithProfiles;
+    // 8. Devolvemos el array final y datos de paginación
+    return {
+        users: usersWithProfiles,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit) || 1
+    };
 };
 
 

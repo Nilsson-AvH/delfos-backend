@@ -20,8 +20,26 @@ const dbCreateClient = async (data) => {
 
 // =====================================================================
 // 2. READ
-const dbGetAllClients = async () => {
-    return await ClientModel.find()
+const dbGetAllClients = async (page = 1, limit = 10, search = '') => {
+    let query = {};
+    if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        query.$or = [
+            { companyName: searchRegex },
+            { address: searchRegex },
+            { phone: searchRegex },
+            { companyEmail: searchRegex },
+            { nit: searchRegex }
+        ];
+
+        // As the user request notes, we are not including manager's name in this simplistic search.
+        // Doing so would require a pre-query to Users and adding their IDs to $or.
+    }
+
+    const skip = (page - 1) * limit;
+
+    const total = await ClientModel.countDocuments(query);
+    const clients = await ClientModel.find(query)
         .populate({
             path: 'clientManager',
             populate: {
@@ -29,7 +47,16 @@ const dbGetAllClients = async () => {
                 select: 'names lastName secondLastName email' // Solo traemos lo que necesitamos para la tabla
             }
         })
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    return {
+        clients,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit) || 1
+    };
 };
 
 const dbGetClientById = async (id) => {

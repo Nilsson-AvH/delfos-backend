@@ -63,8 +63,13 @@ const createClient = async (req, res) => {
 // READ ALL
 const getAllClients = async (req, res) => {
     try {
-        const clients = await dbGetAllClients();
-        res.json({ clients });
+        const { page = 1, limit = 10, search = '' } = req.query;
+
+        const pageNum = parseInt(page, 10);
+        const limitNum = parseInt(limit, 10);
+
+        const result = await dbGetAllClients(pageNum, limitNum, search);
+        res.json(result);
     } catch (error) {
         res.status(500).json({ msg: "Error consultando clientes" });
     }

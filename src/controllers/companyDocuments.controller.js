@@ -1,5 +1,6 @@
 import CompanyDocument from '../models/CompanyDocument.model.js';
 import OperationalUser from '../models/users/UserOperational.model.js';
+import User from '../models/users/User.model.js';
 // 👇 IMPORTANTE: Importamos tu nuevo servicio maestro
 import { srvDeleteCompanyFile } from '../services/storage/storage.service.js';
 
@@ -8,12 +9,51 @@ import { srvDeleteCompanyFile } from '../services/storage/storage.service.js';
 // =====================================================================
 export const getAllCompanyDocuments = async (req, res) => {
     try {
-        const docs = await CompanyDocument.find()
-            .populate('user', 'names lastName nuip') 
-            .populate('generatedBy', 'names')        
-            .sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
 
-        res.json(docs);
+        let query = {};
+
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+
+            // 1. Buscar usuarios que coincidan con el término
+            const matchingUsers = await User.find({
+                $or: [
+                    { names: searchRegex },
+                    { lastName: searchRegex },
+                    { nuip: searchRegex }
+                ]
+            }).select('_id');
+
+            const userIds = matchingUsers.map(u => u._id);
+
+            // 2. Filtrar documentos donde el documentType coincida O el user esté en userIds
+            query = {
+                $or: [
+                    { documentType: searchRegex },
+                    { user: { $in: userIds } }
+                ]
+            };
+        }
+
+        const skip = (page - 1) * limit;
+
+        const total = await CompanyDocument.countDocuments(query);
+        const docs = await CompanyDocument.find(query)
+            .populate('user', 'names lastName nuip')
+            .populate('generatedBy', 'names')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            docs,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit) || 1
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ msg: "Error al obtener documentos" });
@@ -25,7 +65,7 @@ export const getAllCompanyDocuments = async (req, res) => {
 // =====================================================================
 export const getDocumentsByOperationalId = async (req, res) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
 
         const opUser = await OperationalUser.findById(id);
         if (!opUser) {
@@ -52,7 +92,7 @@ export const getDocumentsByOperationalId = async (req, res) => {
 // =====================================================================
 export const deleteCompanyDocument = async (req, res) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
 
         // 1. Buscamos el documento primero
         const docToDelete = await CompanyDocument.findById(id);
@@ -64,7 +104,7 @@ export const deleteCompanyDocument = async (req, res) => {
         // Para borrar en Local, necesitamos saber en qué carpeta está.
         // Esta lógica debe coincidir con la que usaste al crear (en docGenerator).
         let folderName = 'delfos-official-docs'; // Por defecto (Contratos, Certificados, Cartas)
-        
+
         if (docToDelete.documentType === 'CarnetCorporativo') {
             folderName = 'delfos-carnets';
         }
@@ -72,7 +112,7 @@ export const deleteCompanyDocument = async (req, res) => {
         // 3. EJECUTAR BORRADO FÍSICO (Usando el Servicio Maestro)
         // Pasamos: ID, Proveedor (local/s3/cloudinary) y la Carpeta
         await srvDeleteCompanyFile(
-            docToDelete.publicId, 
+            docToDelete.publicId,
             docToDelete.storageProvider, // <--- Esto le dice al helper qué estrategia usar
             folderName
         );
