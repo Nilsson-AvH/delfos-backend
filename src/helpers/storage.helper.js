@@ -41,7 +41,7 @@ const saveFileStrategy = async (fileBuffer, companyConfig, folderName, extension
         await fs.writeFile(path.join(uploadPath, fileName), fileBuffer);
 
         // Construir URL pública
-        const baseUrl = companyConfig.backendUrl || process.env.API_URL || 'http://localhost:3001';
+        const baseUrl = process.env.APP_URL || companyConfig.backendUrl || process.env.API_URL || 'http://localhost:3000';
         return {
             url: `${baseUrl}/uploads/${folderName}/${fileName}`,
             publicId: fileName,
